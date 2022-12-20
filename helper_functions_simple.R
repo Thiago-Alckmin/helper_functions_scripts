@@ -4,6 +4,15 @@ print_line <- function(){
   print("---------------------------------------------------")
   }
 
+save_global_env <- function(directory="/home/tresende/Global_Political_Connections/general_purpose/code/global_env/"){
+  
+  global_env_save <- get_timestamp() %>% 
+    substr(start = 1, stop = 11) %>% 
+    str_remove_all(., pattern = "-") %>% 
+    paste0("global_env",., ".RData") %>% 
+    paste0(directory, .)
+  
+  save.image(file=global_env_save)}
 
 
 ################################################################################
@@ -24,7 +33,6 @@ is_greater_than_zero <- function(x) {
   out <- (x > 0) * 1
   return(out)
 }
-
 
 # Section 1.4: missing as zero ----
 na_as_zero <- function(x){
