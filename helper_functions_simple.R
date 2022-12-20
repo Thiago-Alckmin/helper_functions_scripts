@@ -1,7 +1,9 @@
 
+# packages used 
+# pacman::p_load(data.table, magrittr, dplyr, glue)
 
 ################################################################################
-# Section 0: funcitons to use in the set up section  ###########################
+# Section 0: functions to use in the set up section  ###########################
 ################################################################################
 
 save_global_env <- function(directory="/home/tresende/Global_Political_Connections/general_purpose/code/global_env/"){
@@ -13,7 +15,6 @@ save_global_env <- function(directory="/home/tresende/Global_Political_Connectio
     paste0(directory, .)
   
   save.image(file=global_env_save)}
-
 
 ################################################################################
 # Section 1: mathematical helper functions #####################################
@@ -248,6 +249,101 @@ remove_suffix_from_variables <- function(variables, suffixes){
 ################################################################################
 # Section 3: String operations #################################################
 ################################################################################
+
+
+# Section 3.0: examples of names that need cleaning  -----
+create_name_column <- function(dataset=NULL){
+  
+  data_set_options <- c("CIA-CHIEFS")
+  
+  if(is.null(dataset)){
+    message("The names here are sourced from actual data-sets. Available data-set options are: ")
+    message(glue::glue_collapse(data_set_options, sep = ", "))
+  }
+
+  if(dataset=="CIA-CHIEFS"){
+    c(
+"Prifti, Dritan", "Baymyrat HOJAMUHAMMEDOW" 
+, "Francoise ASSOGBA", "Sarbu, Marian" 
+, "Jennifer WESTFORD, Doctor", "Hierro, Luis" 
+, "Ahmed Mohamed Mohamed AL-KAROURI", "Raja Pervaiz ASHRAF" 
+, "Bedouma Alain YODA", "Vasyl HRYTSAK" 
+, "Abdul Hadi ARGHANDIWAL", "Toprak, Erdogan" 
+, "Jose Carlos Lopes CORREIA", "Sheikh Hassan Ismail BILE" 
+, "MENG Jianzhu", "Metogho, Emmanuel Ondo" 
+, "Ivan ZAMBRANO", "Tatoul MARKARIAN" 
+, "Mariano Gago, Jose", "Maumoon Abdul GAYOOM" 
+, "Sabine LARUELLE", "Denis SASSOU-Nguesso" 
+, "Jeffrey, Henry, Doctor", "Abdoulaye BALDE" 
+, "Sergey MASKEVICH", "Masahiko KOMURA" 
+, "Tsedevdamba OYUNGEREL", "Tokon MAMYTOV" 
+, "MOHAMMAD bin Abd Rahman", "Evode UWIZEYIMANA" 
+, "Maria KIWANUKA", "Selma Aliye KAVAF" 
+, "Djombo, Henri", "Petre TSISKARISHVILI" 
+, "Gilles NOGHES", "Adechi, Joel" 
+, "Clayton BURGIN", "Mikhail KHVOSTOV" 
+, "Abdiweli Ibrahim Sheikh MUUDEEY", "M. Veerappa MOILY" 
+, "Ngandagina, Joao Baptista", "Babanyyaz ITALMAZOW" 
+, "Adil SAFIR", "Andrea LEADSOM" 
+, "Tabare Ramon VAZQUEZ Rosas", "Peri Vaevae PARE" 
+, "Milosavljevic, Slobodan", "Besir ATALAY" 
+, "Naomi Mataafa FIAME", "SUWIT Yotmanee" 
+, "Shuala, Abd al-Nabi al-", "Reginald AUSTRIE" 
+, "Elyse RATSIRAKA", "Janez PODOBNIK" 
+, "Henry PUNA", "Khatib, Mohammed Seif" 
+, "Gudmundur Arni STEFANSSON", "Obaid Humaid al-TAYER" 
+, "YOO Young-sook", "Aananda Prasad POKHERAL" 
+, "Timothy TONG Hin-ming", "Janis MAZEIKS" 
+, "Fernando \"\"Lasama\"\" de ARAUJO", "Thomas Motsoahae THABANE" 
+, "Lee, Howard Chin", "Christian NOYER" 
+, "Ramiro VALDES Menendez", "Guillermo RISHCHYNSKI" 
+, "Abd al-Wahid al-AWADI", "Qaranful, Sami" 
+, "Mahen JHUGROO", "Ruslan KAZAKBAEV" 
+, "Daniel SCIOLI", "Iuga, Mircea" 
+, "KYAW SAN, Colonel", "Georgette KOKO" 
+, "Adoum GARGOUM", "Adao do NASCIMENTO" 
+, "Deborah Mae LOVELL", "Muhammad bin Abd al-Malik AL AL-SHAYKH" 
+, "Julio VELARDE", "Yuli EDELSTEIN" 
+, "Anna BIJLEVELD", "Banoita Tourab SALEH, Doctor" 
+, "Aiyaz SAYED-KHAIYUM", "Asia Muhammad Ali IDRISS" 
+, "Paulo Sergio PASSOS", "RYU Mi Yong" 
+, "Lohani, Prakash Chandra", "ALI MUHSIN al-Ahmar, Lieutenant General" 
+, "Kamana, Jean", "LETSIE III" 
+, "Petr PROKOPOVICH", "Paul SWAIN" 
+, "HU Jintao", "Bogdan KLICH" 
+, "Lygia KRAAG-KETELDIJK", "Mahesh BASNET" 
+, "NUT NINDOEUN (F)", "Karl-Heinz GRASSER" 
+, "Amadou Boubacar CISSE", "Truong My HOA" 
+, "Siniora, Fuad", "JUNEDIN Sado" 
+, "De Mauro, Tullio", "Philippe RICHERT" 
+, "Sam IDURI", "Kanda SIPTEY" 
+, "Eyegue Obama Asue, Francisco Pascual", "El Fassi, Abbas" 
+, "OH Myung", "Alfheidur INGADOTTIR" 
+, "Waena, Nathaniel", "Delano Frank BART" 
+, "Geldymukhammed ASHIRMUKHAMEDOV", "Jose Eduardo DOS SANTOS" 
+, "Ilham ALIYEV", "Fillon, Francois" 
+, "Rasmussen, Lars Loekke", "Steve BLACKETT" 
+, "Carlos Alberto AMARANTE BARET", "AHMAD bin Jumat, Doctor" 
+, "Dewael, Patrick", "Paride ANDREOLI" 
+, "Henry KAJURA", "Phiwayinkhosi MABUZA" 
+, "SUN CHANTHOL", "Homayoun RASA" 
+, "Nkaku KABI", "Rajoy, Mariano Brey" 
+, "Danilo ASTORI Saragoza", "Hassanein, Muhammad Medhat" 
+, "Qarase, Laisenia", "Mendez Pinelo, Cesar Augusto, Brigadier General"
+, "Qarase, Laisenia", "PERNG Fai-nan" 
+, "Anerood JUGNAUTH, Sir", "KHALID bin Abdallah Al Khalifa" 
+, "Yar Muhammad RIND", "MSWATI III" 
+, "TEA BANH, General", "Sirojidin ASLOV" 
+, "Jose Antonio GARCIA BELAUNo Diplomatic Exchange", "NUTH SOKHOM" 
+, "James BABA", "Etienne SCHNEIDER" 
+, "Muhsin BILAL, Doctor", "Adriano MALEIANE" 
+, "James MUSONI", "Helgi AGUSTSSON"
+    ) %>% as.data.table() %>% dplyr::rename(., "name" = ".") %>% return()
+  }
+  
+  
+  
+}
 
 # Section 3.1: clean names  -----
 standardize_name_column <- function(
@@ -1286,6 +1382,42 @@ copy_column <- function(datatable, column_name, copy_column_name) {
 # Section 6: print things  ###########################
 ################################################################################
 
+# Section 6.1.1: simply print out a line ----
 print_line <- function(){
   print("---------------------------------------------------")
+}
+
+# Section 6.1.2: print out a line, a message, then another line ----
+message_with_lines <- function(message_text){
+  message("---------------------------------------------------")
+  message(message_text)
+  message("---------------------------------------------------")
+  
+}
+
+# Section 6.2: return output in the style of a vector input: incredibly useful when working with R ----
+return_in_vector_format <- function(x){
+  
+  # if its a character vector
+  if(is.character(x)){
+    
+    out <- x %>% 
+      paste(., collapse = "', '") %>% 
+      paste0("'", . , "'") %>%
+      paste0("c(", . , ")")
+    
+  }
+  
+  # if its a numeric vector
+  if(is.numeric(x)){
+    
+    out <- x %>% 
+      paste(., collapse = ", ") %>% 
+      paste0("c(",. , ")")
+    
+  }
+  
+  return(out)
+  
+  
 }
