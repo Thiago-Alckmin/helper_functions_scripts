@@ -264,9 +264,9 @@ standardize_name_column <- function(
   # drop_common_titles_when_one_comma <- T
   # drop_common_titles_when_more_than_one_comma <- T
   
-  print_line %>% print()
+  print_line() # %>% print()
   paste0("Standardizing name column: (", column ,")") %>%  print()
-  print_line %>% print()
+  print_line() # %>% print()
   
   
   # 1) set-up: get original names ----
@@ -296,9 +296,9 @@ standardize_name_column <- function(
     .[, n_commas := str_count(column2, ",")] 
   
   
-  print_line %>% print()
+  print_line() # %>% print()
   paste0("1) String column has been transliterated into ASCII, upper case characters.") %>%  print()
-  print_line %>% print()
+  print_line() # %>% print()
   
   # 6) deal with commas -----
   
@@ -343,9 +343,9 @@ standardize_name_column <- function(
         .[order(INTERNAL_ORDER_COLUMN)]
       
       
-      print_line %>% print()
+      print_line() # %>% print()
       paste0("2.1) String column with many commas has had common titles removed & extra commas dropped.") %>%  print()
-      print_line %>% print()
+      print_line() # %>% print()
       
     }
     
@@ -380,9 +380,9 @@ standardize_name_column <- function(
         .[n_commas==1] %>% 
         .[order(INTERNAL_ORDER_COLUMN)]
       
-      print_line %>% print()
+      print_line() # %>% print()
       paste0("2.2) String column with one comma has had common titles removed & extra commas dropped.") %>%  print()
-      print_line %>% print()
+      print_line() # %>% print()
       
     }
     
@@ -411,13 +411,13 @@ standardize_name_column <- function(
       
       print("Notice!! The warning message for: (str_invert_order_given_one_comma) is addressed in the code!")
       
-      print_line %>% print()
+      print_line() # %>% print()
       paste0(
         "3) The order of elements with one comma in (", column, ") has been inverted.",
         " E.g. [Lname, Fname] becomes [Fname Lname]. An indicator n_commas let's us know the number of commas.", 
         " If an element contains multiple commas, nothing is done.") %>% 
         print()
-      print_line %>% print()
+      print_line() # %>% print()
       
       
     }
@@ -427,11 +427,11 @@ standardize_name_column <- function(
   
   # 6.4)  rbind into three datatables depending on number of commas -----
   
-  print_line %>% print()
+  print_line() # %>% print()
   paste0(
     "4) Additional punctuation and non-characters have been cleaned &/or removed.") %>% 
     print()
-  print_line %>% print()
+  print_line() # %>% print()
   
   
   contain_commas_char0 %>%

@@ -492,7 +492,7 @@ pairwise_merge_indices <- function(datatable_x, id_x, col_x,
   for(col_x in by_columns) {
     
     paste0("Column from data.table x: (",col_x,")") %>% print()
-    print_line %>% print()
+    print_line() #() #() #() #() # %>% print()
     
     datatable_x_tmp <- datatable_x %>% copy() %>% 
       rename_columns(
@@ -519,7 +519,7 @@ pairwise_merge_indices <- function(datatable_x, id_x, col_x,
     for (col_y in by_columns) {
       
       paste0("Column from data.table y: (",col_y,")") %>% print()
-      print_line %>% print()
+      print_line() #() #() #() #() # %>% print()
       
       datatable_y_tmp <- datatable_y %>%
         rename_columns(
