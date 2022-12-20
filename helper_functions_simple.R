@@ -1,8 +1,8 @@
 
 
-print_line <- function(){
-  print("---------------------------------------------------")
-  }
+################################################################################
+# Section 0: funcitons to use in the set up section  ###########################
+################################################################################
 
 save_global_env <- function(directory="/home/tresende/Global_Political_Connections/general_purpose/code/global_env/"){
   
@@ -1280,4 +1280,12 @@ copy_column <- function(datatable, column_name, copy_column_name) {
   
   return(datatable)
   
+}
+
+################################################################################
+# Section 6: print things  ###########################
+################################################################################
+
+print_line <- function(){
+  print("---------------------------------------------------")
 }
