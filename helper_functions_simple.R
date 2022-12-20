@@ -1,6 +1,6 @@
 
 # packages used 
-# pacman::p_load(data.table, magrittr, dplyr, glue)
+# pacman::p_load(data.table, magrittr, dplyr, glue, stringr)
 
 ################################################################################
 # Section 0: functions to use in the set up section  ###########################
@@ -252,7 +252,7 @@ remove_suffix_from_variables <- function(variables, suffixes){
 
 
 # Section 3.0: examples of names that need cleaning  -----
-create_name_column <- function(dataset=NULL){
+str_create_name_column <- function(dataset="CIA-CHIEFS"){
   
   data_set_options <- c("CIA-CHIEFS")
   
@@ -263,82 +263,474 @@ create_name_column <- function(dataset=NULL){
 
   if(dataset=="CIA-CHIEFS"){
     c(
-"Prifti, Dritan", "Baymyrat HOJAMUHAMMEDOW" 
-, "Francoise ASSOGBA", "Sarbu, Marian" 
-, "Jennifer WESTFORD, Doctor", "Hierro, Luis" 
-, "Ahmed Mohamed Mohamed AL-KAROURI", "Raja Pervaiz ASHRAF" 
-, "Bedouma Alain YODA", "Vasyl HRYTSAK" 
-, "Abdul Hadi ARGHANDIWAL", "Toprak, Erdogan" 
-, "Jose Carlos Lopes CORREIA", "Sheikh Hassan Ismail BILE" 
-, "MENG Jianzhu", "Metogho, Emmanuel Ondo" 
-, "Ivan ZAMBRANO", "Tatoul MARKARIAN" 
-, "Mariano Gago, Jose", "Maumoon Abdul GAYOOM" 
-, "Sabine LARUELLE", "Denis SASSOU-Nguesso" 
-, "Jeffrey, Henry, Doctor", "Abdoulaye BALDE" 
-, "Sergey MASKEVICH", "Masahiko KOMURA" 
-, "Tsedevdamba OYUNGEREL", "Tokon MAMYTOV" 
-, "MOHAMMAD bin Abd Rahman", "Evode UWIZEYIMANA" 
-, "Maria KIWANUKA", "Selma Aliye KAVAF" 
-, "Djombo, Henri", "Petre TSISKARISHVILI" 
-, "Gilles NOGHES", "Adechi, Joel" 
-, "Clayton BURGIN", "Mikhail KHVOSTOV" 
-, "Abdiweli Ibrahim Sheikh MUUDEEY", "M. Veerappa MOILY" 
-, "Ngandagina, Joao Baptista", "Babanyyaz ITALMAZOW" 
-, "Adil SAFIR", "Andrea LEADSOM" 
-, "Tabare Ramon VAZQUEZ Rosas", "Peri Vaevae PARE" 
-, "Milosavljevic, Slobodan", "Besir ATALAY" 
-, "Naomi Mataafa FIAME", "SUWIT Yotmanee" 
-, "Shuala, Abd al-Nabi al-", "Reginald AUSTRIE" 
-, "Elyse RATSIRAKA", "Janez PODOBNIK" 
-, "Henry PUNA", "Khatib, Mohammed Seif" 
-, "Gudmundur Arni STEFANSSON", "Obaid Humaid al-TAYER" 
-, "YOO Young-sook", "Aananda Prasad POKHERAL" 
-, "Timothy TONG Hin-ming", "Janis MAZEIKS" 
-, "Fernando \"\"Lasama\"\" de ARAUJO", "Thomas Motsoahae THABANE" 
-, "Lee, Howard Chin", "Christian NOYER" 
-, "Ramiro VALDES Menendez", "Guillermo RISHCHYNSKI" 
-, "Abd al-Wahid al-AWADI", "Qaranful, Sami" 
-, "Mahen JHUGROO", "Ruslan KAZAKBAEV" 
-, "Daniel SCIOLI", "Iuga, Mircea" 
-, "KYAW SAN, Colonel", "Georgette KOKO" 
-, "Adoum GARGOUM", "Adao do NASCIMENTO" 
-, "Deborah Mae LOVELL", "Muhammad bin Abd al-Malik AL AL-SHAYKH" 
-, "Julio VELARDE", "Yuli EDELSTEIN" 
-, "Anna BIJLEVELD", "Banoita Tourab SALEH, Doctor" 
-, "Aiyaz SAYED-KHAIYUM", "Asia Muhammad Ali IDRISS" 
-, "Paulo Sergio PASSOS", "RYU Mi Yong" 
-, "Lohani, Prakash Chandra", "ALI MUHSIN al-Ahmar, Lieutenant General" 
-, "Kamana, Jean", "LETSIE III" 
-, "Petr PROKOPOVICH", "Paul SWAIN" 
-, "HU Jintao", "Bogdan KLICH" 
-, "Lygia KRAAG-KETELDIJK", "Mahesh BASNET" 
-, "NUT NINDOEUN (F)", "Karl-Heinz GRASSER" 
-, "Amadou Boubacar CISSE", "Truong My HOA" 
-, "Siniora, Fuad", "JUNEDIN Sado" 
-, "De Mauro, Tullio", "Philippe RICHERT" 
-, "Sam IDURI", "Kanda SIPTEY" 
-, "Eyegue Obama Asue, Francisco Pascual", "El Fassi, Abbas" 
-, "OH Myung", "Alfheidur INGADOTTIR" 
-, "Waena, Nathaniel", "Delano Frank BART" 
-, "Geldymukhammed ASHIRMUKHAMEDOV", "Jose Eduardo DOS SANTOS" 
-, "Ilham ALIYEV", "Fillon, Francois" 
-, "Rasmussen, Lars Loekke", "Steve BLACKETT" 
-, "Carlos Alberto AMARANTE BARET", "AHMAD bin Jumat, Doctor" 
-, "Dewael, Patrick", "Paride ANDREOLI" 
-, "Henry KAJURA", "Phiwayinkhosi MABUZA" 
-, "SUN CHANTHOL", "Homayoun RASA" 
-, "Nkaku KABI", "Rajoy, Mariano Brey" 
-, "Danilo ASTORI Saragoza", "Hassanein, Muhammad Medhat" 
-, "Qarase, Laisenia", "Mendez Pinelo, Cesar Augusto, Brigadier General"
-, "Qarase, Laisenia", "PERNG Fai-nan" 
-, "Anerood JUGNAUTH, Sir", "KHALID bin Abdallah Al Khalifa" 
-, "Yar Muhammad RIND", "MSWATI III" 
-, "TEA BANH, General", "Sirojidin ASLOV" 
-, "Jose Antonio GARCIA BELAUNo Diplomatic Exchange", "NUTH SOKHOM" 
-, "James BABA", "Etienne SCHNEIDER" 
-, "Muhsin BILAL, Doctor", "Adriano MALEIANE" 
-, "James MUSONI", "Helgi AGUSTSSON"
-    ) %>% as.data.table() %>% dplyr::rename(., "name" = ".") %>% return()
+      "Prifti, Dritan",
+      "Baymyrat HOJAMUHAMMEDOW"
+      ,
+      "Francoise ASSOGBA",
+      "Sarbu, Marian"
+      ,
+      "Jennifer WESTFORD, Doctor",
+      "Hierro, Luis"
+      ,
+      "Ahmed Mohamed Mohamed AL-KAROURI",
+      "Raja Pervaiz ASHRAF"
+      ,
+      "Bedouma Alain YODA",
+      "Vasyl HRYTSAK"
+      ,
+      "Abdul Hadi ARGHANDIWAL",
+      "Toprak, Erdogan"
+      ,
+      "Jose Carlos Lopes CORREIA",
+      "Sheikh Hassan Ismail BILE"
+      ,
+      "MENG Jianzhu",
+      "Metogho, Emmanuel Ondo"
+      ,
+      "Ivan ZAMBRANO",
+      "Tatoul MARKARIAN"
+      ,
+      "Mariano Gago, Jose",
+      "Maumoon Abdul GAYOOM"
+      ,
+      "Sabine LARUELLE",
+      "Denis SASSOU-Nguesso"
+      ,
+      "Jeffrey, Henry, Doctor",
+      "Abdoulaye BALDE"
+      ,
+      "Sergey MASKEVICH",
+      "Masahiko KOMURA"
+      ,
+      "Tsedevdamba OYUNGEREL",
+      "Tokon MAMYTOV"
+      ,
+      "MOHAMMAD bin Abd Rahman",
+      "Evode UWIZEYIMANA"
+      ,
+      "Maria KIWANUKA",
+      "Selma Aliye KAVAF"
+      ,
+      "Djombo, Henri",
+      "Petre TSISKARISHVILI"
+      ,
+      "Gilles NOGHES",
+      "Adechi, Joel"
+      ,
+      "Clayton BURGIN",
+      "Mikhail KHVOSTOV"
+      ,
+      "Abdiweli Ibrahim Sheikh MUUDEEY",
+      "M. Veerappa MOILY"
+      ,
+      "Ngandagina, Joao Baptista",
+      "Babanyyaz ITALMAZOW"
+      ,
+      "Adil SAFIR",
+      "Andrea LEADSOM"
+      ,
+      "Tabare Ramon VAZQUEZ Rosas",
+      "Peri Vaevae PARE"
+      ,
+      "Milosavljevic, Slobodan",
+      "Besir ATALAY"
+      ,
+      "Naomi Mataafa FIAME",
+      "SUWIT Yotmanee"
+      ,
+      "Shuala, Abd al-Nabi al-",
+      "Reginald AUSTRIE"
+      ,
+      "Elyse RATSIRAKA",
+      "Janez PODOBNIK"
+      ,
+      "Henry PUNA",
+      "Khatib, Mohammed Seif"
+      ,
+      "Gudmundur Arni STEFANSSON",
+      "Obaid Humaid al-TAYER"
+      ,
+      "YOO Young-sook",
+      "Aananda Prasad POKHERAL"
+      ,
+      "Timothy TONG Hin-ming",
+      "Janis MAZEIKS"
+      ,
+      "Fernando \"\"Lasama\"\" de ARAUJO",
+      "Thomas Motsoahae THABANE"
+      ,
+      "Lee, Howard Chin",
+      "Christian NOYER"
+      ,
+      "Ramiro VALDES Menendez",
+      "Guillermo RISHCHYNSKI"
+      ,
+      "Abd al-Wahid al-AWADI",
+      "Qaranful, Sami"
+      ,
+      "Mahen JHUGROO",
+      "Ruslan KAZAKBAEV"
+      ,
+      "Daniel SCIOLI",
+      "Iuga, Mircea"
+      ,
+      "KYAW SAN, Colonel",
+      "Georgette KOKO"
+      ,
+      "Adoum GARGOUM",
+      "Adao do NASCIMENTO"
+      ,
+      "Deborah Mae LOVELL",
+      "Muhammad bin Abd al-Malik AL AL-SHAYKH"
+      ,
+      "Julio VELARDE",
+      "Yuli EDELSTEIN"
+      ,
+      "Anna BIJLEVELD",
+      "Banoita Tourab SALEH, Doctor"
+      ,
+      "Aiyaz SAYED-KHAIYUM",
+      "Asia Muhammad Ali IDRISS"
+      ,
+      "Paulo Sergio PASSOS",
+      "RYU Mi Yong"
+      ,
+      "Lohani, Prakash Chandra",
+      "ALI MUHSIN al-Ahmar, Lieutenant General"
+      ,
+      "Kamana, Jean",
+      "LETSIE III"
+      ,
+      "Petr PROKOPOVICH",
+      "Paul SWAIN"
+      ,
+      "HU Jintao",
+      "Bogdan KLICH"
+      ,
+      "Lygia KRAAG-KETELDIJK",
+      "Mahesh BASNET"
+      ,
+      "NUT NINDOEUN (F)",
+      "Karl-Heinz GRASSER"
+      ,
+      "Amadou Boubacar CISSE",
+      "Truong My HOA"
+      ,
+      "Siniora, Fuad",
+      "JUNEDIN Sado"
+      ,
+      "De Mauro, Tullio",
+      "Philippe RICHERT"
+      ,
+      "Sam IDURI",
+      "Kanda SIPTEY"
+      ,
+      "Eyegue Obama Asue, Francisco Pascual",
+      "El Fassi, Abbas"
+      ,
+      "OH Myung",
+      "Alfheidur INGADOTTIR"
+      ,
+      "Waena, Nathaniel",
+      "Delano Frank BART"
+      ,
+      "Geldymukhammed ASHIRMUKHAMEDOV",
+      "Jose Eduardo DOS SANTOS"
+      ,
+      "Ilham ALIYEV",
+      "Fillon, Francois"
+      ,
+      "Rasmussen, Lars Loekke",
+      "Steve BLACKETT"
+      ,
+      "Carlos Alberto AMARANTE BARET",
+      "AHMAD bin Jumat, Doctor"
+      ,
+      "Dewael, Patrick",
+      "Paride ANDREOLI"
+      ,
+      "Henry KAJURA",
+      "Phiwayinkhosi MABUZA"
+      ,
+      "SUN CHANTHOL",
+      "Homayoun RASA"
+      ,
+      "Nkaku KABI",
+      "Rajoy, Mariano Brey"
+      ,
+      "Danilo ASTORI Saragoza",
+      "Hassanein, Muhammad Medhat"
+      ,
+      "Qarase, Laisenia",
+      "Mendez Pinelo, Cesar Augusto, Brigadier General"
+      ,
+      "Qarase, Laisenia",
+      "PERNG Fai-nan"
+      ,
+      "Anerood JUGNAUTH, Sir",
+      "KHALID bin Abdallah Al Khalifa"
+      ,
+      "Yar Muhammad RIND",
+      "MSWATI III"
+      ,
+      "TEA BANH, General",
+      "Sirojidin ASLOV"
+      ,
+      "Jose Antonio GARCIA BELAUNo Diplomatic Exchange",
+      "NUTH SOKHOM"
+      ,
+      "James BABA",
+      "Etienne SCHNEIDER"
+      ,
+      "Muhsin BILAL, Doctor",
+      "Adriano MALEIANE"
+      ,
+      "James MUSONI",
+      "Helgi AGUSTSSON",
+      'Afful, John Edward',
+      'Yasser REDA',
+      'Ersumer, Cumhur',
+      'Igwe AJA-NWACHUKWU',
+      'Ghoul, Omar',
+      'Saud NASEIRAT',
+      'Adou ASSOA',
+      'Benoit OUTTARA',
+      'Sultan, Sultan Hamid',
+      'PHAN PHIN (CPP)',
+      'Ilona JURSEVSKA',
+      'Polataivao, Fosi',
+      'Adnan BADRAN',
+      'SONG Soo-keun',
+      'Soccoh KABIA',
+      'Naot, Yehudit',
+      'Patrick Saidu CONTEH, Doctor',
+      'Rosalia CORTE-REAL',
+      'Mohammed LOULICHKI',
+      'TUNG Hsiang-lung',
+      'Yien TUT',
+      'Joe OLIVER',
+      'Ben Abdallah, Moncef',
+      'Zaha WAHEED',
+      'Philip BYARUHANGA',
+      'El Hossein EL OUARDI',
+      'Marto, Michel',
+      'Dupont, Christian',
+      'PHISIT Li-atham',
+      'Lubica LASSAKOVA',
+      'Frick, Mario',
+      'Ergash SHOISMATOV',
+      'Tomka, Peter',
+      'Essomba ETOUNDI',
+      'Musa, Hamid Majid',
+      'ABDALLAH bin Zayid al-Nuhayyan',
+      'Muci, Mustafa',
+      'CHALEUAN Yapaoher',
+      'Latifa AKHERBACH',
+      'Marian LUPU',
+      'Dsir ADADJA',
+      'Henry CHIMUNTHU-BANDA',
+      'Houssen Hassan IBRAHIM Minister, Ministry of Justice, Civil Service, Administrative, Administration Reform, Human Rights, &',
+      'Celestin NIYONGABO',
+      'Mujahid al-QAHALA',
+      'Nkongo, Maximin Paul N\'Koue', 'Muhammad Nidal al - SHA’AR', 'Ivan FOSCHI', 'Pelisge HARRISON', 'Nguyen Manh Kiem', 'Jean', 'Fahey,
+      John', 'Kuzvart,
+      Milos', 'Quliyev,
+      Vilayat', 'LIM Swee Say', 'Guillaume LONG', 'LIO Chao - hsuan', 'Alvarado Downing,
+      Guillermo', 'Lawan Gana BUBA', 'Guy Mikulu POMBO', 'Clarke,
+      Gline', 'Senaviratne,
+      Athauda', 'Mohamed EL OUAFA', 'Isch,
+      Edgar', 'Steve MAHAREY', 'Oleh PROSKURYAKOV', 'Aghvan VARDANYAN', 'Rosa Bautista,
+      Leonidas', 'Augusto DOS SANTOS', 'Maria de Fatima Monteiro JARodger Dodger !
+        IM', 'Luis Enrique MONTERROSO', 'Hubert OULAYE', 'Michael KEENAN', 'Latpov,
+      Ural', 'Anwar Muhammad al - GARGASH', 'Kazem VAZIRI - Hamaneh', 'Wellington SANDOVAL', 'Mangoaela,
+      Percy Metsing', 'Omar MANSOUR', 'Temirbek KURMANBEKOV', 'Hamlaoui,
+      Yahia', 'Saleem MANDVIWALLA', 'Hassan HARUNA', 'Hemida Ould Ahmed TALEB', 'Horacio SEVILLA Borja', 'PRASERT Boonchaisuk', 'Souley,
+      Hassane', 'Andre Ringui LE GAILLARodger Dodger ! ', 'Bahr Idris ABU GARodger Dodger !
+        A', 'Fouad Ali EL - HIMMA', 'Bessie Reen KACHERE', 'Jacques Ulrich RANDRIANTIANA', 'Djibril Yipene BASSOLE', 'John MUTORWA', 'Jovanovic,
+      Vladislav', 'Saud,
+      ABD AL - AZIZ bin Fahd bin Abd', 'Tokyo SEXWALE', 'Amina EL - GUINDI', 'Boubaker EL -
+        AKHZOURI', 'Rill,
+      Anton', 'Amos KIMUNYA', 'Imendia,
+      Francisco', 'Hamud Muhammad ABAD', 'Flores Facusse,
+      Carlos Roberto', 'Peter Paire O\'NEILL',
+      'Dias, Guilherme Gomes',
+      'Tonis LUKAS',
+      'Casali, Augusto',
+      'MAENG Hyung-kyu',
+      'Matteo FIORINI',
+      'Babamyrat TAGANOW',
+      'Webb, Maurine',
+      'Dayasritha TISSERA',
+      'Cristobal Menana ELA',
+      'Brasseur, Anne',
+      'Muhammetguly OGSHUKOV',
+      'Matuq, Abdallah al-',
+      'Godfridah Nsenduluka SUMAILI',
+      'Mountaga TALL',
+      'Yondo, Maurice',
+      'Levai, Katalin',
+      'Serra, Joao',
+      'Bornito De Sousa Baltazar DIOGO',
+      'Ravil SAFIULLIN',
+      'Satya Veyash FAUGOO',
+      'Svetozar MAROVIC',
+      'Ancil ANTOINE',
+      'Abdi Ibrahim Absieh',
+      'Karamatov, Hamidulla',
+      'Imbert, Colm',
+      'CHAN NYEIN',
+      'Nancy BAKIR',
+      'Alvear Valenzuela, Maria Soledad',
+      'Patricia GORodger Dodger!ON-PAMPLIN',
+      'MONGKHON Na Songkhla, Doctor',
+      'Georgios BABINIOTIS',
+      'Mendes, Luis Olundo',
+      'David HARUTYUNYAN',
+      'Milutinovic, Milan',
+      'Maris KUCINSKIS',
+      'Nabil Mohamed AHMED, Doctor',
+      'Krishna Bahadur MAHARA',
+      'Capoulas Santos, Luis Manuel',
+      'Ibrahim al-JAZI',
+      'Pecek, Zeljko',
+      'Tshipasa, Venant',
+      'Octavio SANCHEZ',
+      'ABDUL RAHMAN bin Mohamed Taib',
+      'Wisdom, Neville',
+      'Abdullah al-THINI',
+      'Cidalia CHAUQUE',
+      'Cheikh Bamba DIEYE',
+      'Snjezana SOLDAT',
+      'Dona Jean-Claude HOUSSOU',
+      'Jorge Alberto MOLINA Contreras',
+      'Mohamed Ould Mohamed Abderrahmane Ould MOINE',
+      'Te Ururoa FLAVELL',
+      'Maggie BARRY',
+      'Rakam CHEMJONG',
+      'Amr EZZAT SALAMA',
+      'Stepan KUBIV',
+      'Ichinkhorloo ERDENEBAATAR',
+      'Oscar MARTINEZ Doldan',
+      'Salehuddin AHMED',
+      'Lina Dolores POHL Alfaro',
+      'Gabriel Mosima “Tokyo” SEXWALE',
+      'Babatune OSOTIMEHIN',
+      'Nacer MEHAL',
+      'Christopher Kajoro CHIZA',
+      'Jose Luis CANCELA',
+      'Khushiram, Khushhal',
+      'Kimmo TILLIKAINEN',
+      'Spartak SEYRANIAN',
+      'Son Chong-ho',
+      'Weerawanni, Samaraweera',
+      'Jagmohan',
+      'Ronell GILES',
+      'Adama BICTOGO',
+      'Marino MURILLO Jorge',
+      'Hamadou MUSTAPHA',
+      'Eliseo RIO, Jr.',
+      'Malan, Pedro',
+      'Magtymguly BAYRAMDURDYYEW',
+      'Lang, Jack',
+      'Antonio de Aguiar PATRIOTA',
+      'Abdul Razaq WAHIDI',
+      'Rita, Cosme Afonso Da Trindade',
+      ' Obiang, Rene Ndemezo',
+      'Rebeca SANTOS',
+      'Arpad ERSEK',
+      'Mabandla, Bridgette',
+      'al-Fayez, Faisal',
+      'Anwar Muhammad GARGASH',
+      'Rup JYOTI',
+      'Gerry RITZ',
+      'Solange Pagonendji NDACKALA',
+      'CHUNG Dong-chea',
+      'Nunzia DE GIROLAMO',
+      'Rashid Hamad Muhammad al-HAMAD',
+      'Spatafora, Marcello',
+      'Hery RAJAONARIMAMPIANINA',
+      'Shatwan, Ahmad Fathi ibn',
+      'Van Dunem, Oswaldo de Jesus Serra',
+      'Mba, Fernando Mabale',
+      'Jabulani MABUZA',
+      'Mwakwere, Chirau Ali',
+      'Alain Guillaumme BUNYONI',
+      'Khalid TOUQAN',
+      'Mikael DAMBERG',
+      'Stagno, Bruno',
+      'PAK Song-ch\'ol', 'Abdallah Awabil MANTHUQ', 'Jose HERNANo Diplomatic ExchangeZ Bernardez', 'Halima Tayo ALAO', 'Chaves Bolanos,
+      Javier', 'Carlos Alberto DUBOY Sierra', 'Artur SILVA', 'Song Chong - ho', 'Jadranka KOSOR', 'ANSARI,
+      Majid,
+      Hojjat ol - Eslam', 'Petre TSISKARISHVILI', 'Adoum GARGOUM', 'Ollanta Moises HUMALA Tasso', 'Nduwimana,
+      Onesime', 'Mark WOYONGO', 'Salwai,
+      Charlot', 'Rania ABDEL MONIM,
+      Doctor', 'Andrzej CZUMA', 'Diego FUENTES Acosta', 'Rasit MEREDOW', 'YEO Yong Boon,
+      George,
+      Brigadier General', 'Limam Ould TEGUEDI', 'Bicakcic,
+      Edhem', 'Stuart Rowland ROBERT', 'Kumbakor,
+      Andrew', 'Patil,
+      Shivraj', 'Salamat AZIMI', 'Fio Selafi Joseph Purcell LAUTAFI', 'FELIPE VI', 'Sheila TLOU', 'Gusmao,
+      Jose Alexander', 'Zypries,
+      Brigitte', 'Dithny Joan RATON', 'Bassam AWADALLAH', 'Othom Rago AJAK', 'Xavier CASAL Rodriguez', 'Dube,
+      Alfred', 'Lucian Puiu GEORGESCU', 'Provoste,
+      Yasta', 'Djigui CAMARA', 'Kazhmurat NAGMANOV', 'SUWAPHAN Tanyuwattana', 'Michael MOROSKY,
+      Sir', 'Agni Prasad KHAREL', 'Johnnie K. SWARTZ', 'Koimdodov,
+      Kozidavlat', 'Lodhi,
+      Maleeha', 'Ali OSOBLE', 'Frederique VIDAL', 'Pape Gorgui NDONG', 'Nikolaos PAPPAS', 'Edita HRodger Dodger !
+        A', 'Justin NDIORO', 'Persis NAMUGANZA', 'Dinesh TRIVEDI', 'Salah JARRAR', 'Antoni JASZCZUK', 'Amadou SOUMAHORO', 'Enrique MENDOZA Ramirez', 'Mandandi,
+      Godden', 'Ibrahima KOUROUMA', 'Martins ROZE', 'Daniele BODINI', 'Shamsi,
+      Abd al - Aziz bin Nasir al - ', 'Atef OBEIDAT', 'Ali Abd al - Aziz al -
+        ISSAWI', 'Arun SINGH', 'Orlando Celso GARCIA Ramirez', 'Benedikt JOHANNESSON', 'Kahinda OTAFIIRE,
+      Colonel', 'Sharaf,
+      Ali Hamid al - ,
+      Captain', 'Viktor TOPOLOV', 'Kalinic,
+      Dragan', 'Salah Al Sayyed YOUSUF FARAG', 'Henry OKELLO ORYEM', 'CHU Ching -
+        yi (a.k.a. Cyrus CHU)', 'Aksenenko,
+      Nikolay Yemelyanovich', 'Margaret Mhango MWANAKATWE', 'Mamadou SIDIBE', 'Samuel SANTOS Lopez', 'Saad Al KHARABSHEH', 'O Kuk Ryol,
+      General', 'Kouyate,
+      Oumare', 'Sanoussy Bantama SOW', 'Rawhani,
+      Abd al - Wahhab al - ', 'Lagos Pizzati,
+      Victor Manuel', 'LEE Ju - ho', 'Michael MISKIN', 'Eila,
+      Mohammed Tahir', 'Jean - Pierre DARUWEZI Mokombe', 'Rawdhan Abd al - Aziz al -
+        RAWDHAN', 'Suat KILIC', 'Abdallah al - RABYA', 'Lu,
+      Annette', 'Abdallah Sulayman Abdallah Sulayman,
+      Professor', 'Hasan QAZIZADEH - Hashemi', 'Christabel NJIMBU', 'ABD al -
+        Aziz bin Atiyatallah al - Khalifa', 'Frafjord Johnson,
+      Hilde', 'Rock,
+      Allan', 'Henrik Sass LARSEN', 'Bao,
+      Yuntuvi', 'Naftali BENNETT', 'Jelena PIA - COMELLA', 'Mercedes JUAN LOPEZ', 'KIM Dong -
+        yeon', 'Alberto RIGAIL Arosemena', 'Gil,
+      Rosalia', 'Alfredo GOMEZ Urcuyo', 'Dalibor STYS', 'RI Kwang Gon', 'Rene FIGUEROA', 'Danilo TONINELLI', 'Hector DADA Hirezi', 'Claudio BISOGNIERO', 'Kabir HASHIM', 'Lin,
+      Feng - mei', 'Diakite Aissata TRAORE', 'Linda Amalia Sari GUMELAR', 'Velasquez,
+      Alfonso', 'Mohammad Jakir HUSSEIN', 'Ferrero - Waldner,
+      Benita', 'Miguel,
+      Girlyn', 'Michel BONGONGO', 'Masumeh EBTEKAR', 'Abdullah GUL', 'Greg CLARK', 'Mansour FAYE', 'Abd al -
+        Rahman Muhammad SHALGHAM', 'Abd al - Rahman Muhammad al - OWAIS', 'Ashton GRANEAU', 'Algirdas BUTKEVICIUS', 'Manohar PARRIKAR', 'Benjamin,
+      Charlie', 'Georgievski,
+      Ljubco', 'MAH Bow Tan', 'Bergen,
+      Ernst', 'M. Hatta RAJASA', 'Mohamed GHAZI', 'El - Mursi HEGAZY', 'Reem bin Ibrahim al -
+        HASHIMI', 'Serhiy TIHIPKO', 'Nezdet MUSTAFA', 'Vincent SSESMPIJJA', 'Joaquin ZEVALLOS', 'Tinatin KHIDASHELI', 'Gallardo,
+      Jorge', 'John Luk JOK', 'Merete RIISAGER', 'Nanan,
+      Adesh', 'Narayanan,
+      Kocheril Raman', 'Dharmendra PRADHAN', 'Cristian LARROULET Vignau', 'Paulo KASSOMA', 'Jawad Karim al -
+        BULANI', 'Cao Duc PHAT', 'Marcos JORGE de Lima', 'Alfonso DASTIS Quecedo', 'Hmeyda,
+      Zeidane Ould', 'Do Trung Ta', 'Eliud Ulises AYALA Zamora', 'Zdena ABAZAGIC', 'Ronald JUMEAU', 'Rodolfo MEDINA', 'Philip Bruce GOFF', 'Haiman EL TROUDI', 'Marisol ARGUETA de Barillas', 'Herrera Tello,
+      Maria Teresa', 'Ricardo Alberto ARIAS Arias', 'William Ni’i HAOMAE', 'Petsalnikos,
+      Filippos', 'Nelu Ioan BOTIS', 'Toledo,
+      Alejandro', 'Elvia Violeta MENJIVAR Escalante', 'Neil PARSAN', 'Beyshenaliyeva,
+      Neliya', 'Sarr,
+      Oumar', 'Aniceto EBIAKA Mohote', 'Manuel GONZALEZ Sanz', 'Falah Hasan al -
+        ZAYDAN', 'Mavroyiannis,
+      Andreas', 'Jeannette SANCHEZ', 'Karl - Theodor zu GUTTENBERG', 'Kuzmuk,
+      Oleksandr', 'Lovden,
+      Lars - Erik', 'Ylli MANJANI', 'Ganoo,
+      Alan', 'Navarrete Lopez,
+      Jorge', 'Carolina RENTERIA', 'Sadun Farhan al - DULAYMI', 'Betty TOLA', 'Sarah bint Yousef al -
+        AMIRI', 'Gayibov,
+      Charymammed', 'RASHID bin Abdallah Al Nuaymi', 'David LITTLEPROUD', 'Eduard GRAMA', 'Ze’ev BOIM', 'Pavlopoulos,
+      Prokopis', 'Kelly O\'DWYER',
+      'Kerekou, Mathieu',
+      'Mali Malie, Mpho') %>% as.data.table() %>% dplyr::rename(., "name" = ".") %>% return()
   }
   
   
@@ -354,18 +746,16 @@ standardize_name_column <- function(
     change_order_because_of_comma){
   
   # DELETE LATER
-  # datatable <- cia_source_0119 %>% copy()
-  # column <- "politician1"
+  # datatable <- str_create_name_column()
+  # column <- "name"
   # change_order_because_of_comma <- T
   # drop_common_titles_when_one_comma <- T
   # drop_common_titles_when_more_than_one_comma <- T
   
-  print_line() # %>% print()
-  paste0("Standardizing name column: (", column ,")") %>%  print()
-  print_line() # %>% print()
-  
-  
-  # 1) set-up: get original names ----
+  paste0("Standardizing name column: (", column ,")") %>%
+    message_with_lines()
+
+    # 1) set-up: get original names ----
   original_names <- names(datatable)
   # keep original columns + clean column 
   keep_these <- paste0(column, "_clean") %>% append(original_names, .)
@@ -379,25 +769,23 @@ standardize_name_column <- function(
     current_names = c(column),
     new_names = c("column")) %>%
     # 4) transliterate from latin1 to ASCII (simple 32-127 code point characters) ----
-  .[, column2 := stri_trans_general(column, 'Any-Latin') ] %>% 
-    .[, column2 := stri_trans_general(column2, 'Any-Latn') ] %>% 
-    .[, column2 := stri_trans_general(column2, 'Latin-ASCII') ] %>% 
+  .[, column2 := stringi::stri_trans_general(column, 'Any-Latin') ] %>% 
+    .[, column2 := stringi::stri_trans_general(column2, 'Any-Latn') ] %>% 
+    .[, column2 := stringi::stri_trans_general(column2, 'Latin-ASCII') ] %>% 
     # 5) everything upper case ----
-  .[, column2 := str_to_upper(column2)] %>% 
+  .[, column2 := stringr::str_to_upper(column2)] %>% 
     # 6) drop instances of multiple commas together
-    .[, column2 := str_replace(column2, pattern = ",,", replacement = ",")]  %>% 
+    .[, column2 := stringr::str_replace(column2, pattern = ",,", replacement = ",")]  %>% 
     # indicate number of commas 
-    .[, n_commas := str_count(column2, ",")]  %>% 
+    .[, n_commas := stringr::str_count(column2, ",")]  %>% 
     .[n_commas>0, column2 := str_remove_all_trailing_commas_and_spaces(column2) ] %>% 
-    .[, n_commas := str_count(column2, ",")] 
+    .[, n_commas := stringr::str_count(column2, ",")] %>% 
+    .[, column2 := stringr::str_remove_all(column2, "\\n")]
   
-  
-  print_line() # %>% print()
-  paste0("1) String column has been transliterated into ASCII, upper case characters.") %>%  print()
-  print_line() # %>% print()
-  
+  paste0("1) String column has been transliterated into ASCII, upper case characters.") %>%  
+    message_with_lines()
+
   # 6) deal with commas -----
-  
   
   # 6.0)  split into three datatables depending on number of commas -----
   contain_commas_char0 <- datatable_tmp %>% copy() %>% .[n_commas==0]
@@ -413,10 +801,10 @@ standardize_name_column <- function(
       contain_commas_char2 %<>%
         # drop titles 
         .[, column2 := drop_common_titles(column2, prefix = " ", suffix = " ")]  %>% 
-        .[, column2 := drop_common_titles(column2, prefix = " ", suffix = "")]  %>% 
-        .[, column2 := drop_common_titles(column2, prefix = "", suffix = " ")]  %>% 
         .[, column2 := drop_common_titles(column2, prefix = " ", suffix = ",")]  %>% 
         .[, column2 := drop_common_titles(column2, prefix = ",", suffix = " ")]  %>% 
+        .[, column2 := drop_common_titles_startswith(column2, prefix = "", suffix = " ")]  %>% 
+        .[, column2 := drop_common_titles_endswith(column2, prefix = ",", suffix = "")]  %>% 
         .[, column2 := str_trim(column2)]  %>% 
         # recompute number of commas
         .[, n_commas := str_count(column2, ",")]  
@@ -458,10 +846,10 @@ standardize_name_column <- function(
       contain_commas_char1 %<>%
         # drop titles 
         .[, column2 := drop_common_titles(column2, prefix = " ", suffix = " ")]  %>% 
-        .[, column2 := drop_common_titles(column2, prefix = " ", suffix = "")]  %>% 
-        .[, column2 := drop_common_titles(column2, prefix = "", suffix = " ")]  %>% 
         .[, column2 := drop_common_titles(column2, prefix = " ", suffix = ",")]  %>% 
         .[, column2 := drop_common_titles(column2, prefix = ",", suffix = " ")]  %>% 
+        .[, column2 := drop_common_titles_startswith(column2, prefix = "", suffix = " ")]  %>% 
+        .[, column2 := drop_common_titles_endswith(column2, prefix = ",", suffix = "")]  %>% 
         # recompute number of commas
         .[, n_commas := str_count(column2, ",")]  
       
@@ -523,12 +911,10 @@ standardize_name_column <- function(
   
   # 6.4)  rbind into three datatables depending on number of commas -----
   
-  print_line() # %>% print()
+
   paste0(
     "4) Additional punctuation and non-characters have been cleaned &/or removed.") %>% 
-    print()
-  print_line() # %>% print()
-  
+    message_with_lines()
   
   contain_commas_char0 %>%
     rbind(., contain_commas_char1) %>%
@@ -546,24 +932,24 @@ standardize_name_column <- function(
     rename_columns(current_names = c("column_original"),
                    new_names = c("column"))  %>%
     # remove some additional things -----
-  .[, column2 := str_replace(column2, pattern = "\\u008e", replacement =  "Z")] %>%
-    .[, column2 := str_remove(column2, pattern = "\\u0092")] %>%
-    .[, column2 := str_remove(column2, pattern = "\\u0093")] %>%
-    .[, column2 := str_remove(column2, pattern = "\\u0094")] %>%
-    .[, column2 := str_remove(column2, pattern = "\\\177")] %>%
-    .[, column2 := str_remove(column2, pattern = "\\\177")] %>%
-    .[, column2 := str_replace(column2, pattern = "\u009a", replacement = "S")]  %>%
-    .[, column2 := str_remove(column2, pattern = "\\^")] %>%
-    .[, column2 := str_remove(column2, pattern = "\\´")] %>%
-    .[, column2 := str_remove(column2, pattern = "\\ʿ")] %>%
-    .[, column2 := str_remove(column2, pattern = "\\`")] %>%
-    .[, column2 := str_remove(column2, pattern = "\\+")] %>%
-    .[, column2 := str_remove(column2, pattern = "\\>")] %>%
-    .[, column2 := str_remove(column2, pattern = "\\<")] %>%
-    .[, column2 := str_remove(column2, pattern = "\\^")] %>%
-    .[, column2 := str_remove(column2, pattern = "³")] %>%
-    .[, column2 := str_remove(column2, pattern = "/")] %>%
-    .[, column2 := str_trim(column2, "both")] %>% 
+  .[, column2 := stringr::str_replace(column2, pattern = "\\u008e", replacement =  "Z")] %>%
+    .[, column2 := stringr::str_remove(column2, pattern = "\\u0092")] %>%
+    .[, column2 := stringr::str_remove(column2, pattern = "\\u0093")] %>%
+    .[, column2 := stringr::str_remove(column2, pattern = "\\u0094")] %>%
+    .[, column2 := stringr::str_remove(column2, pattern = "\\\177")] %>%
+    .[, column2 := stringr::str_remove(column2, pattern = "\\\177")] %>%
+    .[, column2 := stringr::str_replace(column2, pattern = "\u009a", replacement = "S")]  %>%
+    .[, column2 := stringr::str_remove(column2, pattern = "\\^")] %>%
+    .[, column2 := stringr::str_remove(column2, pattern = "\\´")] %>%
+    .[, column2 := stringr::str_remove(column2, pattern = "\\ʿ")] %>%
+    .[, column2 := stringr::str_remove(column2, pattern = "\\`")] %>%
+    .[, column2 := stringr::str_remove(column2, pattern = "\\+")] %>%
+    .[, column2 := stringr::str_remove(column2, pattern = "\\>")] %>%
+    .[, column2 := stringr::str_remove(column2, pattern = "\\<")] %>%
+    .[, column2 := stringr::str_remove(column2, pattern = "\\^")] %>%
+    .[, column2 := stringr::str_remove(column2, pattern = "³")] %>%
+    .[, column2 := stringr::str_remove(column2, pattern = "/")] %>%
+    .[, column2 := str_trim_ws_iterate(string = column2, whitespace = " ")] %>% 
     # rename finalized columns  -----
   rename_columns(datatable = ., 
                  current_names = c("column", "column2"), 
@@ -821,7 +1207,8 @@ str_remove_all_trailing_commas_and_spaces <- function(string){
 }
 
 # Section 3.11: get a vector of common titles  --------
-get_common_tites <- function(type = "educ_all") {
+get_common_tites <- function(type = "educ_period") {
+
   if (type == "") {
     warning("Possible types are: (educ_all), (educ_period), (military) or (poli).")
   }
@@ -869,26 +1256,27 @@ get_common_tites <- function(type = "educ_all") {
     out <- c(
       "DOCTOR",
       "ESQUIRE", 
-      "Professor"
+      "PROFESSOR"
     ) }
   
   if (type == "educ_period") {
     out <- c(
-      "MR." ,
-      "MSR." ,
-      "MS.",
-      "BSC.",
-      "MSC.",
-      "MBA.",
-      "MA." ,
-      "MD." ,
-      "PH.D.",
-      "PHD." ,
-      "DR." ,
-      "LLM." ,
-      "LLB.",
-      "PROF.",
-      "ENG."
+      "B\\.A\\.",
+      "MR\\." ,
+      "MSR\\." ,
+      "MS\\.",
+      "BSC\\.",
+      "MSC\\.",
+      "MBA\\.",
+      "MA\\." ,
+      "MD\\." ,
+      "PH\\.D\\.",
+      "PHD\\." ,
+      "DR\\." ,
+      "LLM\\." ,
+      "LLB\\.",
+      "PROF\\.",
+      "ENG\\."
     ) 
     
     
@@ -899,140 +1287,113 @@ get_common_tites <- function(type = "educ_all") {
     
     
     
-    out <-  c(
-      "Warrant Officer",
-      "Technical",
-      "Sergeant",
-      "Sgt.",
-      "Staff",
-      "Senior Master Sergeant",
-      "Senior Airman",
-      "Second Lieutenant",
-      "Second Lt.",
-      "Master Sergeant",
-      "Master Sgt.",
-      "Major General",
-      "Maj. Gen.",
-      "Major", 
-      "Maj.",
-      "lieutenant general",
-      "LIEUTENANT GENERAL",
-      "Lt. Gen.",
-      "lieutenant colonel",
-      "Lt. Col.",
-      "General", 
-      "Gen.",
-      "First Sergeant",
-      "1st Sgt.",
-      "first lieutenant", 
-      "1st Lt.",
-      "Command Chief Master Sergeant", 
-      "Command Chief Master Sgt.",
-      "Colonel", 
-      "Col.",
-      "chief warrant officer" ,
-      "Chief Master Sergeant",
-      "Chief Sgt.",
-      "of the Air Force",
-      "Captain",
-      "Capt.",
-      "brigadier general",
-      "Brig. Gen.",
-      "Airman Basic",
-      "Airman",
-      "sergeant major",
-      "of the Army",
-      "Sgt. Maj." ,
-      "command sergeant major",
-      "Command Sgt. Maj.",
-      "sergeant major",
-      "Sgt. Maj.",
-      "first sergeant",
-      "1st Sgt.",
-      "master sergeant",
-      "Master Sgt.",
-      "sergeant first class",
-      "Sgt. 1st Class",
-      "staff sergeant",
-      "Staff Sgt.",
-      "Sergeant", 
-      "Sgt.",
-      "Corporal", "Cpl.",
-      "Specialist", "Spc.",
-      "private first class",
-      "Admiral",
-      "Adm.",
-      "vice admiral",
-      "Vice Adm.",
-      "rear admiral",
-      "Rear Adm.",
-      "commander",
-      "Cmdr.",
-      "lieutenant commander", 	
-      "Lt. Cmdr.",
-      "lieutenant", 
-      "Lt.",
-      "lieutenant junior grade", 
-      "Lt. j.g.",
-      "Ensign"	,
-      "chief warrant officer",
-      "master chief petty officer",
-      "Senior Chief Petty Officer",
-      "chief petty officer",
-      "petty officer", 
-      "first class",
-      "1st Class",
-      "second class", 
-      "2nd Class",
-      "third class", 
-      "3rd Class",
-      "Seaman",
-      "seaman apprentice",
-      "Seaman Recruit",
-      "sergeant Major",
-      "Sgt. Maj.",
-      "Master Gunnery Sergeant",
-      "Master Sgt. Maj.",
-      "first sergeant",
-      "1st Sgt.",
-      "master sergeant",
-      "Master Sgt.",
-      "Gunnery Sergeant",
-      "Gunnery Sgt.",
-      "staff sergeant",
-      "Staff Sgt.",
-      "Sergeant", 
-      "Sgt.",
-      "Corporal", 
-      "Cpl.",
-      "Lance Corporal",
-      "Lance Cpl.",
-      "Pfc.",
-      "Private",	
-      "Pvt.",
-      "GEN.",
-      "MAJ.",
-      "(RET.)",
-      "(RETIRED)",
-      "COL.",
-      "LT.",
-      "BRIG.",
-      "RADM.",
-      "DIV.",
-      "FD.",
-      "MAR.",
-      "CAPT.",
-      "ADM.",
-      "CORPS",
-      "AIR CHIEF",
-      "OF THE ARMY", 
-      "OF THE NAVY",
-      "of the Marine Corp",
-      "Reserve",
-      "Reservist",
-      "Res."
-      
-    ) 
+    out <-
+      c(
+        'COMMAND CHIEF MASTER SERGEANT',
+        'MASTER CHIEF PETTY OFFICER',
+        'SENIOR CHIEF PETTY OFFICER',
+        'COMMAND CHIEF MASTER SGT.',
+        'LIEUTENANT JUNIOR GRADE',
+        'MASTER GUNNERY SERGEANT',
+        'SENIOR MASTER SERGEANT',
+        'COMMAND SERGEANT MAJOR',
+        'CHIEF WARRANT OFFICER',
+        'CHIEF MASTER SERGEANT',
+        'SERGEANT FIRST CLASS',
+        'LIEUTENANT COMMANDER',
+        'PRIVATE FIRST CLASS',
+        'CHIEF PETTY OFFICER',
+        'LIEUTENANT GENERAL',
+        'LIEUTENANT COLONEL',
+        'OF THE MARINE CORP',
+        'SECOND LIEUTENANT',
+        'BRIGADIER GENERAL',
+        'COMMAND SGT. MAJ.',
+        'SEAMAN APPRENTICE',
+        'FIRST LIEUTENANT',
+        'OF THE AIR FORCE',
+        'MASTER SGT. MAJ.',
+        'GUNNERY SERGEANT',
+        'WARRANT OFFICER',
+        'MASTER SERGEANT',
+        'FIRST SERGEANT',
+        'SERGEANT MAJOR',
+        'SGT. 1ST CLASS',
+        'STAFF SERGEANT',
+        'SEAMAN RECRUIT',
+        'LANCE CORPORAL',
+        'SENIOR AIRMAN',
+        'MAJOR GENERAL',
+        'PETTY OFFICER',
+        'AIRMAN BASIC',
+        'VICE ADMIRAL',
+        'REAR ADMIRAL',
+        'SECOND CLASS',
+        'GUNNERY SGT.',
+        'MASTER SGT.',
+        'OF THE ARMY',
+        'FIRST CLASS',
+        'THIRD CLASS',
+        'OF THE NAVY',
+        'SECOND LT.',
+        'CHIEF SGT.',
+        'BRIG. GEN.',
+        'STAFF SGT.',
+        'SPECIALIST',
+        'LIEUTENANT',
+        'LANCE CPL.',
+        'TECHNICAL',
+        'MAJ. GEN.',
+        'SGT. MAJ.',
+        'VICE ADM.',
+        'REAR ADM.',
+        'COMMANDER',
+        'LT. CMDR.',
+        '1ST CLASS',
+        '2ND CLASS',
+        '3RD CLASS',
+        '(RETIRED)',
+        'AIR CHIEF',
+        'RESERVIST',
+        'SERGEANT',
+        'LT. GEN.',
+        'LT. COL.',
+        '1ST SGT.',
+        'CORPORAL',
+        'LT. J.G.',
+        'GENERAL',
+        '1ST LT.',
+        'COLONEL',
+        'CAPTAIN',
+        'ADMIRAL',
+        'PRIVATE',
+        'RESERVE',
+        'AIRMAN',
+        'ENSIGN',
+        'SEAMAN',
+        '(RET.)',
+        'STAFF',
+        'MAJOR',
+        'CAPT.',
+        'CMDR.',
+        'BRIG.',
+        'RADM.',
+        'CORPS',
+        'SGT.',
+        'MAJ.',
+        'GEN.',
+        'COL.',
+        'CPL.',
+        'SPC.',
+        'ADM.',
+        'PFC.',
+        'PVT.',
+        'DIV.',
+        'MAR.',
+        'RES.',
+        'LT.',
+        'FD.'
+      )
     
   }
   
@@ -1076,7 +1437,6 @@ get_common_tites <- function(type = "educ_all") {
     .[order(-nchar)] %>% 
     .[, `.`] %>% return()
   
-  
 }
 
 # Section 3.12.1: drop common titles from strings: helper functions -------
@@ -1096,7 +1456,11 @@ drop_common_titles <- function(vector, prefix="", suffix=""){
   
   for(title in common_titles){
     
-    vector <- str_remove_all(string = vector, paste0(prefix, title, suffix)) 
+    title <- paste0(prefix, title, suffix)
+    
+    print("Removing common title in parenthesis: (", title,"). This includes the specified prefix & suffix.")
+    
+    vector <- str_remove_all(string = vector, ) 
     
   }
   
