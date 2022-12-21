@@ -1458,7 +1458,8 @@ drop_common_titles <- function(vector, prefix="", suffix=""){
     
     title <- paste0(prefix, title, suffix)
     
-    message_with_lines("Removing common title in parenthesis: (", title,"). This includes the specified prefix & suffix.")
+    paste0("Removing common title in parenthesis: (", title,"). This includes the specified prefix & suffix.") %>% 
+      message_with_lines()
     
     vector <- str_remove_all(string = vector, ) 
     
