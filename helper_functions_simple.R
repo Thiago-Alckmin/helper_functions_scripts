@@ -1180,7 +1180,7 @@ str_remove_all_after_and_including_pattern <- function(string, pattern){
 }
 
 # Section 3.9: trim white space while it still exists ------
-str_trim_ws_iterate <- function(string, whitespace){
+str_trim_ws_iterate <- function(string, whitespace=" "){
   
   while(sum(endsWith(string, whitespace))>0){
     
