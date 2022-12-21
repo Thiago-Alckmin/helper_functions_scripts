@@ -1292,7 +1292,7 @@ get_common_tites <- function(type = "educ_period") {
         'COMMAND CHIEF MASTER SERGEANT',
         'MASTER CHIEF PETTY OFFICER',
         'SENIOR CHIEF PETTY OFFICER',
-        'COMMAND CHIEF MASTER SGT.',
+        'COMMAND CHIEF MASTER SGT\\.',
         'LIEUTENANT JUNIOR GRADE',
         'MASTER GUNNERY SERGEANT',
         'SENIOR MASTER SERGEANT',
@@ -1308,17 +1308,17 @@ get_common_tites <- function(type = "educ_period") {
         'OF THE MARINE CORP',
         'SECOND LIEUTENANT',
         'BRIGADIER GENERAL',
-        'COMMAND SGT. MAJ.',
+        'COMMAND SGT\\. MAJ\\.',
         'SEAMAN APPRENTICE',
         'FIRST LIEUTENANT',
         'OF THE AIR FORCE',
-        'MASTER SGT. MAJ.',
+        'MASTER SGT\\. MAJ\\.',
         'GUNNERY SERGEANT',
         'WARRANT OFFICER',
         'MASTER SERGEANT',
         'FIRST SERGEANT',
         'SERGEANT MAJOR',
-        'SGT. 1ST CLASS',
+        'SGT\\. 1ST CLASS',
         'STAFF SERGEANT',
         'SEAMAN RECRUIT',
         'LANCE CORPORAL',
@@ -1329,26 +1329,26 @@ get_common_tites <- function(type = "educ_period") {
         'VICE ADMIRAL',
         'REAR ADMIRAL',
         'SECOND CLASS',
-        'GUNNERY SGT.',
-        'MASTER SGT.',
+        'GUNNERY SGT\\.',
+        'MASTER SGT\\.',
         'OF THE ARMY',
         'FIRST CLASS',
         'THIRD CLASS',
         'OF THE NAVY',
-        'SECOND LT.',
-        'CHIEF SGT.',
-        'BRIG. GEN.',
-        'STAFF SGT.',
+        'SECOND LT\\.',
+        'CHIEF SGT\\.',
+        'BRIG\\. GEN\\.',
+        'STAFF SGT\\.',
         'SPECIALIST',
         'LIEUTENANT',
-        'LANCE CPL.',
+        'LANCE CPL\\.',
         'TECHNICAL',
-        'MAJ. GEN.',
-        'SGT. MAJ.',
-        'VICE ADM.',
-        'REAR ADM.',
+        'MAJ\\. GEN\\.',
+        'SGT\\. MAJ\\.',
+        'VICE ADM\\.',
+        'REAR ADM\\.',
         'COMMANDER',
-        'LT. CMDR.',
+        'LT\\. CMDR\\.',
         '1ST CLASS',
         '2ND CLASS',
         '3RD CLASS',
@@ -1356,13 +1356,13 @@ get_common_tites <- function(type = "educ_period") {
         'AIR CHIEF',
         'RESERVIST',
         'SERGEANT',
-        'LT. GEN.',
-        'LT. COL.',
-        '1ST SGT.',
+        'LT\\. GEN\\.',
+        'LT\\. COL\\.',
+        '1ST SGT\\.',
         'CORPORAL',
-        'LT. J.G.',
+        'LT\\. J\\.G\\.',
         'GENERAL',
-        '1ST LT.',
+        '1ST LT\\.',
         'COLONEL',
         'CAPTAIN',
         'ADMIRAL',
@@ -1371,28 +1371,28 @@ get_common_tites <- function(type = "educ_period") {
         'AIRMAN',
         'ENSIGN',
         'SEAMAN',
-        '(RET.)',
+        '(RET\\.)',
         'STAFF',
         'MAJOR',
-        'CAPT.',
-        'CMDR.',
-        'BRIG.',
-        'RADM.',
+        'CAPT\\.',
+        'CMDR\\.',
+        'BRIG\\.',
+        'RADM\\.',
         'CORPS',
-        'SGT.',
-        'MAJ.',
-        'GEN.',
-        'COL.',
-        'CPL.',
-        'SPC.',
-        'ADM.',
-        'PFC.',
-        'PVT.',
-        'DIV.',
-        'MAR.',
-        'RES.',
-        'LT.',
-        'FD.'
+        'SGT\\.',
+        'MAJ\\.',
+        'GEN\\.',
+        'COL\\.',
+        'CPL\\.',
+        'SPC\\.',
+        'ADM\\.',
+        'PFC\\.',
+        'PVT\\.',
+        'DIV\\.',
+        'MAR\\.',
+        'RES\\.',
+        'LT\\.',
+        'FD\\.'
       )
     
   }
@@ -1409,7 +1409,7 @@ get_common_tites <- function(type = "educ_period") {
       "VICE",
       "PRESIDENT",
       "CHAIRMAN",
-      "MIN.",
+      "MIN\\.",
       "CHIEF",
       "AYATOLLAH",
       "CROWN",
@@ -1461,7 +1461,7 @@ drop_common_titles <- function(vector, prefix="", suffix=""){
     paste0("Removing common title in parenthesis: (", title,"). This includes the specified prefix & suffix.") %>% 
       message_with_lines()
     
-    vector <- str_remove_all(string = vector, ) 
+    vector <- str_remove_all(string = vector, pattern = title) 
     
   }
   
@@ -1494,7 +1494,7 @@ drop_common_titles_startswith <- function(vector, prefix="", suffix=""){
     
     title <- paste0(prefix, title, suffix)
     
-    vector_dt[startsWith(vector, title),  vector := str_remove_all(vector, title)]
+    vector_dt[startsWith(vector, title),  vector := str_remove_all(string = vector, pattern = title)]
     
   }
   
@@ -1527,7 +1527,7 @@ drop_common_titles_endswith <- function(vector, prefix="", suffix=""){
     
     title <- paste0(prefix, title, suffix)
     
-    vector_dt[endsWith(vector, title),  vector := str_remove_all(vector, title)]
+    vector_dt[endsWith(x = vector, suffix = title),  vector := str_remove_all(string = vector, pattern = title)]
     
   }
   
