@@ -800,13 +800,13 @@ standardize_name_column <- function(
       # 6.3: for rows with more than one comma ----
       contain_commas_char2 %<>%
         # drop titles 
-        .[, column2 := drop_common_titles(column2, prefix = " ", suffix = " ")]  %>% 
-        .[, column2 := drop_common_titles(column2, prefix = " ", suffix = ",")]  %>% 
-        .[, column2 := drop_common_titles(column2, prefix = ",", suffix = " ")]  %>% 
-        .[, column2 := drop_common_titles_startswith(column2, prefix = "", suffix = " ")]  %>% 
-        .[, column2 := drop_common_titles_endswith(column2, prefix = ",", suffix = "")]  %>% 
+        .[, column2 := str_remove_all_common_titles(column2, prefix = " ", suffix = " ")]  %>% 
+        .[, column2 := str_remove_all_common_titles(column2, prefix = " ", suffix = ",")]  %>% 
+        .[, column2 := str_remove_all_common_titles(column2, prefix = ",", suffix = " ")]  %>% 
+        .[, column2 := str_remove_all_common_titles_startswith(column2, prefix = "", suffix = " ")]  %>% 
+        .[, column2 := str_remove_all_common_titles_endswith(column2, prefix = ",", suffix = "")]  %>% 
         # drop some pretty specific titles 
-        .[, column2 := drop_common_titles(column2, specific = get_common_tites(type="military_unambiguous"))]  %>%
+        .[, column2 := str_remove_all_common_titles(column2, specific = get_common_tites(type="unambiguous"))]  %>%
         .[, column2 := str_trim_ws_iterate(column2)]  %>% 
         # recompute number of commas
         .[, n_commas := str_count(column2, ",")]  
@@ -846,13 +846,13 @@ standardize_name_column <- function(
       # 6.3: for rows with more than one comma ----
       contain_commas_char1 %<>%
         # drop titles 
-        .[, column2 := drop_common_titles(column2, prefix = " ", suffix = " ")]  %>% 
-        .[, column2 := drop_common_titles(column2, prefix = " ", suffix = ",")]  %>% 
-        .[, column2 := drop_common_titles(column2, prefix = ",", suffix = " ")]  %>% 
-        .[, column2 := drop_common_titles_startswith(column2, prefix = "", suffix = " ")]  %>% 
-        .[, column2 := drop_common_titles_endswith(column2, prefix = ",", suffix = "")]  %>% 
+        .[, column2 := str_remove_all_common_titles(column2, prefix = " ", suffix = " ")]  %>% 
+        .[, column2 := str_remove_all_common_titles(column2, prefix = " ", suffix = ",")]  %>% 
+        .[, column2 := str_remove_all_common_titles(column2, prefix = ",", suffix = " ")]  %>% 
+        .[, column2 := str_remove_all_common_titles_startswith(column2, prefix = "", suffix = " ")]  %>% 
+        .[, column2 := str_remove_all_common_titles_endswith(column2, prefix = ",", suffix = "")]  %>% 
         # drop some pretty specific titles 
-        .[, column2 := drop_common_titles(column2, specific = get_common_tites(type="military_unambiguous"))]  %>% 
+        .[, column2 := str_remove_all_common_titles(column2, specific = get_common_tites(type="unambiguous"))]  %>% 
         .[, column2 := str_trim_ws_iterate(column2)]  %>%
       # recompute number of commas
         .[, n_commas := str_count(column2, ",")]  
@@ -1213,7 +1213,15 @@ str_remove_all_trailing_commas_and_spaces <- function(string){
 # Section 3.11: get a vector of common titles  --------
 get_common_tites <- function(type = "educ_period") {
 
-  possible_titles <-c("educ_all", "educ_unambiguous", "educ_period", "military", "military_unambiguous", "poli", "oth")
+  possible_titles <-c(
+    "educ_all",
+    "educ_unambiguous",
+    "educ_period",
+    "military",
+    "military_unambiguous",
+    "poli",
+    "oth", 
+    "unambiguous")
   
   if (!(type %in% possible_titles)) {
     
@@ -1262,12 +1270,18 @@ get_common_tites <- function(type = "educ_period") {
     ) }
   
   # every day & educational 
-  if (type == "educ_unambiguous") {
+  if (type == "educ_unambiguous"|type == "unambiguous") {
     out <- c(
       "DOCTOR",
       "ESQUIRE", 
       "PROFESSOR"
-    ) }
+    ) 
+    
+    if(type == "unambiguous"){
+      unambiguous <- out
+    }
+    
+    }
   
   if (type == "educ_period") {
     out <- c(
@@ -1406,7 +1420,7 @@ get_common_tites <- function(type = "educ_period") {
   }
   
   # military
-  if (type == "military_unambiguous") {
+  if (type == "military_unambiguous"|type == "unambiguous") {
     
     out <-
       c(
@@ -1471,6 +1485,10 @@ get_common_tites <- function(type = "educ_period") {
         #'MAJOR'
       )
     
+    if(type == "unambiguous"){
+      unambiguous <- append(unambiguous, out)
+    }
+    
   }
   
   # political & religious
@@ -1505,6 +1523,10 @@ get_common_tites <- function(type = "educ_period") {
     
   }
   
+  if(type == "unambiguous"){
+    out <- unambiguous  
+  }
+  
   out <- out %>% 
     as.data.table() %>% 
     .[, `.`:=str_to_upper(`.`)] %>% 
@@ -1516,7 +1538,7 @@ get_common_tites <- function(type = "educ_period") {
 }
 
 # Section 3.12.1: drop common titles from strings: helper functions -------
-drop_common_titles <- function(vector, prefix="", suffix="", specific=NULL){
+str_remove_all_common_titles <- function(vector, prefix="", suffix="", specific=NULL){
   
   if(is.null(specific)){
   # load common titles 
@@ -1552,7 +1574,7 @@ drop_common_titles <- function(vector, prefix="", suffix="", specific=NULL){
 }
 
 # Section 3.12.2: drop common titles from strings: helper functions -------
-drop_common_titles_startswith <- function(vector, prefix="", suffix="", specific=NULL){
+str_remove_all_common_titles_startswith <- function(vector, prefix="", suffix="", specific=NULL){
   
   if(is.null(specific)){
     # load common titles 
@@ -1590,7 +1612,7 @@ drop_common_titles_startswith <- function(vector, prefix="", suffix="", specific
 }
 
 # Section 3.12.3: drop common titles from strings: helper functions -------
-drop_common_titles_endswith <- function(vector, prefix="", suffix="", specific=NULL){
+str_remove_all_common_titles_endswith <- function(vector, prefix="", suffix="", specific=NULL){
   
   if(is.null(specific)){
     # load common titles 
