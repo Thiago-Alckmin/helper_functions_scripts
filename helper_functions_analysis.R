@@ -325,6 +325,29 @@ create_variable_row_sum_greater_than_zero <- function(datatable,
   return(datatable)
 }
 
+# create boolean using vector of categories -----
+create_boolean_using_vector_of_categories <- 
+  function(datatable, categories, variable){
+    
+    datatable <- datatable %>% copy() %>% 
+      rename_columns(
+        datatable = .,
+        current_names = c(variable),
+        new_names = c("variable"))
+    
+    datatable %>% copy() %>% 
+      .[, variable] %>% 
+      lapply(X = categories, FUN = str_detect, string = .) %>% 
+      as.data.table() %>% 
+      rename_columns(
+        datatable = ., 
+        current_names = names(.), 
+        new_names = categories) %>% 
+      return()
+    
+  }
+
+
 
 # create dummies using vector of categories -----
 create_dummy_if_any_category_present <- 
@@ -359,6 +382,8 @@ create_dummy_if_any_category_present <-
     
     
   }
+
+
 
 
 ################################################################################
