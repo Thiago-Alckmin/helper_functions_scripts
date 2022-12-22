@@ -326,6 +326,40 @@ create_variable_row_sum_greater_than_zero <- function(datatable,
 }
 
 
+# create dummies using vector of categories -----
+create_dummy_if_any_category_present <- 
+  function(datatable, categories, variable, indicator_name="contains_at_least_one_category"){
+    
+    
+    datatable_original <- datatable %>% copy()
+    
+    # create a matrix indicating the presense of each category
+    create_boolean_using_vector_of_categories(
+      datatable=datatable,
+      categories = categories, 
+      variable=variable) %>% 
+      # sum across all indicators 
+      apply(X = .,MARGIN = 1, FUN =  sum, na.rm=T) %>% 
+      #wrangle
+      as.data.table() %>% 
+      rename_columns(
+        datatable = .,
+        current_names = c("."), 
+        new_names = c("SUM")) %>%
+      .[, SUM := (SUM>0)*1] %>%
+      # rename 
+      rename_columns(
+        datatable = .,
+        current_names = c("SUM"), 
+        new_names = c(indicator_name)) %>% 
+      # bind back to original dataset
+      cbind(datatable_original, .) %>% 
+      # output
+      return()
+    
+    
+  }
+
 
 ################################################################################
 # Section 2: Merging ###########################################################
