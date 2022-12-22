@@ -1149,8 +1149,6 @@ str_remove_all_dates <- function(string, date_pattern = "dd MMM yyyy" ){
   if(date_pattern == "dd mm yy"){
     pattern <-  "(\\d{2}).*(\\d{2}).*(\\d{2})"}
   
-  
-  
   string %>%
     sub(pattern = pattern,
         replacement = "",
@@ -1219,7 +1217,7 @@ str_detect_most_common_string_by_group <- function(
   # set-up -----
   by_cols <- by_columns
   by_cols_alt <- 1:length(by_cols) %>% paste0("by_col", .)
-  by_cols_alt_str_column <- by_cols_alt %>% append(c("str_column"))
+  by_cols_alt_str_col <- by_cols_alt %>% append(c("str_col"))
   
   # catch errors 
   if(str_column %chin% by_cols){
@@ -1234,13 +1232,13 @@ str_detect_most_common_string_by_group <- function(
     ) %>%
     rename_columns(
       current_names = str_column, 
-      new_names = "str_column" 
+      new_names = "str_col" 
     ) 
   
   # select most common
   tmp <- datatable %>% copy() %>% 
-    # compute N observatios per group & str_column
-    .[, .N, by_cols_alt_str_column] %>% 
+    # compute N observatios per group & str_col
+    .[, .N, by_cols_alt_str_col] %>% 
     # by the by_cols, get the most frequent occurance
     .[, max_N_by_cols:= ifelse(
       na.rm==T, yes = max(N, na.rm=T), max(N, na.rm=T)), by_cols_alt]   %>%
@@ -1256,12 +1254,12 @@ str_detect_most_common_string_by_group <- function(
   if(first=="alphabetical"){
     tmp %<>%
       # random shuffle
-      .[order(str_column)]
+      .[order(str_col)]
   }
   if(first=="rev_alphabetical"){
     tmp %<>%
       # random shuffle
-      .[order(-str_column)]
+      .[order(-str_col)]
   }
   
   
@@ -1274,9 +1272,13 @@ str_detect_most_common_string_by_group <- function(
     .[, max_N_by_cols := NULL] %>% 
     # rename to show the number of occurrences (in case ) 
     rename_columns(
-      current_names = c("N", "str_column"), 
+      current_names = c("str_col"), 
+      new_names = c(paste0(str_column, "_most_common"))
+    ) %>% 
+    rename_columns(
+      current_names = c("N"), 
       new_names = c(
-        paste0(str_column, "_N_", suffix), paste0(str_column, "_most_common"))
+        paste0(str_column, "_N_", suffix))
     ) %>% 
     merge(
       y =., x = datatable,
@@ -1285,6 +1287,10 @@ str_detect_most_common_string_by_group <- function(
     rename_columns(
       current_names = by_cols_alt, 
       new_names = by_cols)  %>% 
+    rename_columns(
+      current_names = c("str_col"), 
+      new_names = c(paste0(str_column))
+    ) %>% 
     return()
   
   
