@@ -102,9 +102,6 @@ get_new_column_names <- function(old_datatable,
   
 }
 
-
-
-
 # Section 2.2: function to rename vector of variables from data.table ----
 rename_columns <- function(datatable, current_names, new_names){
 
@@ -1182,14 +1179,113 @@ str_remove_all_after_and_including_pattern <- function(string, pattern){
 # Section 3.9: trim white space while it still exists ------
 str_trim_ws_iterate <- function(string, whitespace=" "){
   
-  while(sum(endsWith(string, whitespace))>0){
+  #string <- c(" asdfa asdf ", ", asdf ,asdf ", "sdfadfs ", "   sdf, ", "     d")
+  
+  i <- 0
+  
+  while(sum(startsWith(string, whitespace))>0|sum(endsWith(string, whitespace))>0){
+  
+    i <- i  + 1 
     
-    string %<>% 
-      trimws(., whitespace = whitespace)
+    paste0("Cleaning whitespaces: Iteration: ", i) %>% message_with_lines() 
+     
+    if(whitespace==" "){
+      
+      string %<>% 
+        stringr::str_trim(., side = "both")
+      
+    }else{
+      string %<>% 
+        trimws(., whitespace = whitespace)
+    }
+
     
   }
   
   string %>% return()
+  
+  
+}
+
+# detect the most common string by group ------
+str_detect_most_common_string_by_group <- function(
+    datatable, 
+    by_columns, 
+    str_column, 
+    na.rm=T,
+    first="random", 
+    suffix="per_group"){
+  
+  # set-up -----
+  by_cols <- by_columns
+  by_cols_alt <- 1:length(by_cols) %>% paste0("by_col", .)
+  by_cols_alt_str_column <- by_cols_alt %>% append(c("str_column"))
+  
+  # catch errors 
+  if(str_column %chin% by_cols){
+    errorCondition("str_column is contained in by_columns. ")
+  }
+  
+  # rename columns 
+  datatable %<>% 
+    rename_columns(
+      current_names = by_cols, 
+      new_names = by_cols_alt 
+    ) %>%
+    rename_columns(
+      current_names = str_column, 
+      new_names = "str_column" 
+    ) 
+  
+  # select most common
+  tmp <- datatable %>% copy() %>% 
+    # compute N observatios per group & str_column
+    .[, .N, by_cols_alt_str_column] %>% 
+    # by the by_cols, get the most frequent occurance
+    .[, max_N_by_cols:= ifelse(
+      na.rm==T, yes = max(N, na.rm=T), max(N, na.rm=T)), by_cols_alt]   %>%
+    # restrict to most frequent per group 
+    .[max_N_by_cols==N] 
+  
+  # in case of ties, reshuffle for random or order for alphabetical
+  if(first=="random"){
+    tmp %<>%
+      # random shuffle
+      .[sample(.N, .N, replace = F)]
+  }
+  if(first=="alphabetical"){
+    tmp %<>%
+      # random shuffle
+      .[order(str_column)]
+  }
+  if(first=="rev_alphabetical"){
+    tmp %<>%
+      # random shuffle
+      .[order(-str_column)]
+  }
+  
+  
+  # now remove any duplicates
+  tmp %>% 
+    # drop duplicated by_column groups
+    .[, agg_level := .GRP, by_cols_alt ] %>% 
+    .[!duplicated(agg_level)] %>% 
+    .[, agg_level := NULL] %>% 
+    .[, max_N_by_cols := NULL] %>% 
+    # rename to show the number of occurrences (in case ) 
+    rename_columns(
+      current_names = c("N", "str_column"), 
+      new_names = c(
+        paste0(str_column, "_N_", suffix), paste0(str_column, "_most_common"))
+    ) %>% 
+    merge(
+      y =., x = datatable,
+      by = by_cols_alt, all=T) %>% 
+    # rename to show the number of occurrences (in case ) 
+    rename_columns(
+      current_names = by_cols_alt, 
+      new_names = by_cols)  %>% 
+    return()
   
   
 }
@@ -1794,11 +1890,6 @@ x_second_sleep <- function(x, additional){
   
 }
 
-
-
-
-
-
 ################################################################################
 # Section 5: Internal operations ############################################### 
 ################################################################################
@@ -1834,6 +1925,7 @@ generate_internal_order_column <- function(datatable){
 
 # copy column  ----
 copy_column <- function(datatable, column_name, copy_column_name) {
+
   #   delete later
   # datatable <- surname_fyi %>% copy()
   # column_name <- surname_is_local
