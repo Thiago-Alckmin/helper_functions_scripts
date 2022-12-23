@@ -1916,7 +1916,7 @@ str_remove_all_common_titles_dt <- function(datatable,
           message_with_lines()
         
         
-        dt <- dt[endsWith(x = col, prefix = title_to_search_endswith),
+        dt <- dt[endsWith(x = col, suffix = title_to_search_endswith),
                  col := str_remove_all(string = col, pattern = title_to_delete)]
       }
     }
