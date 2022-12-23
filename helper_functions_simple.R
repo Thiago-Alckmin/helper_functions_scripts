@@ -1925,14 +1925,28 @@ str_remove_all_common_titles_dt <- function(datatable,
     }
   }
   
-
+  # clean up internal order column 
+  internal_order_n <- names(dt) %>% 
+    .[startsWith(., "INTERNAL_ORDER_COLUMN")] %>% 
+    length()
+  
+  if(internal_order_n==2){
+    
+    internal_order_original <- names(dt) %>% 
+      .[startsWith(., "INTERNAL_ORDER_COLUMN_OLD")]
+    
+  }
+  
   dt %>%
+    # remove excess commas (fruit of deletions)
     .[str_detect(col, ", ,"), col := str_replace_all(col, pattern = ", ,", replacement = ",")] %>%
     .[str_detect(col, ",,"), col := str_replace_all(col, pattern = ",,", replacement = ",")] %>%
+    # reorder
     .[order(INTERNAL_ORDER_COLUMN)] %>%
     .[, INTERNAL_ORDER_COLUMN := NULL] %>%
-    rename_columns(current_names = c("col"),
-                   new_names = c(column)) %>%
+    # rename 
+    rename_columns(current_names = c("col", internal_order_original),
+                   new_names = c(column, "INTERNAL_ORDER_COLUMN")) %>%
     return()
 }
 
