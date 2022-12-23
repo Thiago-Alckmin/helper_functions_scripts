@@ -385,7 +385,7 @@ create_dummy_if_any_category_present <-
 
 
 # indicate years present: spit out matrix with the years available -----
-indicate_years_present <- function(
+create_dummy_matrix_to_indicate_years_present <- function(
     datatable, 
     year_min, 
     year_max, 
