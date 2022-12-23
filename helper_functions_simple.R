@@ -1585,6 +1585,8 @@ get_common_tites <- function(type = "educ_period") {
     "educ_all",
     "educ_unambiguous",
     "educ_period",
+    "educ_noperiod",
+    "educ_noperiod_very_ambiguous",
     "military",
     "military_unambiguous",
     "poli",
@@ -1609,17 +1611,19 @@ get_common_tites <- function(type = "educ_period") {
     "MR",
     "MSR",
     "MS",
-    "BA",
     "BSC",
     "MSC" ,
     "MBA" ,
-    "MA",
     "MD",
     "PHD",
     "DR" ,
     "LLM",
     "LLB",
     "PROF")
+  educ_noperiod_very_ambiguous <- c(
+    "BA",
+    "MA"
+  )
   # every day & educational 
   educ_period <- 
     c(
@@ -1749,12 +1753,13 @@ get_common_tites <- function(type = "educ_period") {
     "DIRECTOR"
   )
   
-  # ---------
+  # select vectors 
 
   if (type == "educ_all") {out <- append(educ_period, educ_noperiod, educ_unambiguous) }
   if (type == "educ_unambiguous") {out <- educ_unambiguous}
   if (type == "educ_period") {out <-educ_period}
   if (type == "educ_noperiod") {out <-educ_noperiod}
+  if (type == "educ_noperiod_very_ambiguous") {out <-educ_noperiod_very_ambiguous}
   if (type == "military") {out <- append(military_short, military_unambiguous)}
   if (type == "military_unambiguous") {out <-military_unambiguous}
   if (type == "poli") {out <-  poli}
