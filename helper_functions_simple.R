@@ -1931,8 +1931,8 @@ str_remove_all_common_titles_dt <- function(datatable,
     .[str_detect(col, ",,"), col := str_replace_all(col, pattern = ",,", replacement = ",")] %>%
     .[order(INTERNAL_ORDER_COLUMN)] %>%
     .[, INTERNAL_ORDER_COLUMN := NULL] %>%
-    rename_columns(current_names = c(column),
-                   new_names = c("col")) %>%
+    rename_columns(current_names = c("col"),
+                   new_names = c(column)) %>%
     return()
 }
 
