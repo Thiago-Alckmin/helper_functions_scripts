@@ -1879,6 +1879,14 @@ str_remove_all_common_titles_dt <- function(datatable,
         title_to_search_startswith <- paste0(title, suffix)
         title_to_delete <- title
         
+        paste0(
+          "Searching for string that starts with (",
+          title_to_search_startswith,
+          "). Removing common title in parenthesis: (",
+          title_to_delete,
+          "). This excludes the specified prefix & suffix."
+        ) %>%
+          message_with_lines()
         
         dt <-
           dt[startsWith(x = col, prefix =  title_to_search_startswith),
@@ -1897,6 +1905,15 @@ str_remove_all_common_titles_dt <- function(datatable,
       for (title in common_titles) {
         title_to_search_endswith <- paste0(prefix, title)
         title_to_delete <- title
+        
+        paste0(
+          "Searching for string that ends with (",
+          title_to_search_endswith,
+          "). Removing common title in parenthesis: (",
+          title_to_delete,
+          "). This excludes the specified prefix & suffix."
+        ) %>%
+          message_with_lines()
         
         
         dt <- dt[endsWith(x = col, prefix = title_to_search_endswith),
