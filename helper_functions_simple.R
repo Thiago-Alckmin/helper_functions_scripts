@@ -1042,15 +1042,15 @@ standardize_name_column_dt <- function(
           datatable = ., column = "column2",
           prefixes = c(""),
           suffixes = c(""), 
-          endswith = T, 
-          startswith =T, specific = get_common_tites(type="unambiguous")
+          endswith = F, 
+          startswith =F, specific = get_common_tites(type="unambiguous")
         ) %>% .[, column2 := column2_clean] %>% .[, column2_clean := NULL] %>%
         str_remove_all_common_titles_dt(
           datatable = ., column = "column2",
           prefixes = c(" "),
           suffixes = c(" "), 
-          endswith = T, 
-          startswith =T, specific = get_common_tites(type="educ_noperiod")
+          endswith = F, 
+          startswith =F, specific = get_common_tites(type="educ_noperiod")
         ) %>% .[, column2 := column2_clean] %>% .[, column2_clean := NULL] %>% 
         # drop some pretty specific titles 
         .[, column2 := str_trim_ws_iterate(column2)]  %>% 
@@ -1103,15 +1103,15 @@ standardize_name_column_dt <- function(
           datatable = ., column = "column2",
           prefixes = c(""),
           suffixes = c(""), 
-          endswith = T, 
-          startswith =T, specific = get_common_tites(type="unambiguous")
+          endswith = F, 
+          startswith =F, specific = get_common_tites(type="unambiguous")
         ) %>% .[, column2 := column2_clean] %>% .[, column2_clean := NULL] %>%
         str_remove_all_common_titles_dt(
           datatable = ., column = "column2",
           prefixes = c(" "),
           suffixes = c(" "), 
-          endswith = T, 
-          startswith =T, specific = get_common_tites(type="educ_noperiod")
+          endswith = F, 
+          startswith =F, specific = get_common_tites(type="educ_noperiod")
         ) %>% .[, column2 := column2_clean] %>% .[, column2_clean := NULL] %>% 
         .[, column2 := str_trim_ws_iterate(column2)]  %>%
       # recompute number of commas
