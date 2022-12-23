@@ -2032,7 +2032,7 @@ str_generate_random_string <- function(size){ # used to be: generate_random_stri
 str_generate_random_string_not_in_vector <- function(size, vector){
   
   # generate random string
-  random_string <- generate_random_string(size = size)
+  random_string <- str_generate_random_string(size = size)
   
   # detect if it is in the vector
   check <- str_detect(string = vector, pattern = random_string) %>% sum()
@@ -2043,7 +2043,7 @@ str_generate_random_string_not_in_vector <- function(size, vector){
     while (check==1) {
       print(i)  
       # generate random string
-      random_string <- generate_random_string(size = size)
+      random_string <- str_generate_random_string(size = size)
       
       # detect if it is in the vector
       check <- str_detect(string = vector, pattern = random_string) %>% sum()
