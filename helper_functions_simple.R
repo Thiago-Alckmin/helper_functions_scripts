@@ -1075,9 +1075,10 @@ standardize_name_column_dt <- function(
         .[order(INTERNAL_ORDER_COLUMN)]
       
       
-      print_line() # %>% print()
-      paste0("2.1) String column with many commas has had common titles removed & extra commas dropped.") %>%  print()
-      print_line() # %>% print()
+      
+      "2.1) String column with many commas has had common titles removed & extra commas dropped." %>% 
+        message_with_lines()
+      
       
     }
     
@@ -1128,9 +1129,10 @@ standardize_name_column_dt <- function(
         .[n_commas==1] %>% 
         .[order(INTERNAL_ORDER_COLUMN)]
       
-      print_line() # %>% print()
-      paste0("2.2) String column with one comma has had common titles removed & extra commas dropped.") %>%  print()
-      print_line() # %>% print()
+      
+      paste0("2.2) String column with one comma has had common titles removed & extra commas dropped.") %>% 
+        message_with_lines()
+      
       
     }
     
@@ -1157,15 +1159,16 @@ standardize_name_column_dt <- function(
           new_names = c("column") 
         ) 
       
-      print("Notice!! The warning message for: (str_invert_order_given_one_comma) is addressed in the code!")
+      "Notice!! The warning message for: (str_invert_order_given_one_comma) is addressed in the code!" %>% 
+        message()
       
-      print_line() # %>% print()
+      
       paste0(
         "3) The order of elements with one comma in (", column, ") has been inverted.",
         " E.g. [Lname, Fname] becomes [Fname Lname]. An indicator n_commas let's us know the number of commas.", 
         " If an element contains multiple commas, nothing is done.") %>% 
-        print()
-      print_line() # %>% print()
+        message_with_lines()
+      
       
       
     }
@@ -2169,7 +2172,7 @@ generate_internal_order_column <- function(datatable){
     original_names <- names(datatable)
     
     # generate a random suffix that doesn`t even exist in the orignal names 
-    random_suffix <- generate_random_string_not_in_vector(size = 4, vector = original_names)
+    random_suffix <- str_generate_random_string_not_in_vector(size = 4, vector = original_names)
     
     # new name of old internal order column name 
     old_internal_order_column_new_name <- paste0("INTERNAL_ORDER_COLUMN", "_OLD_", random_suffix)
