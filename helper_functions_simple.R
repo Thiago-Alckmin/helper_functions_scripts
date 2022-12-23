@@ -248,6 +248,12 @@ remove_suffix_from_variables <- function(variables, suffixes){
 ################################################################################
 
 
+
+# is.na for strings 
+is_empty_string <- function(x){
+  return(ifelse(x=="", TRUE, FALSE))
+}
+
 # Section 3.0: examples of names that need cleaning  -----
 str_create_name_column <- function(dataset="CIA-CHIEFS"){
   
@@ -962,6 +968,263 @@ standardize_name_column <- function(
   
 }
 
+# Section 3.1: clean names  -----
+standardize_name_column_dt <- function(
+    datatable, 
+    column, 
+    drop_common_titles_when_one_comma,
+    drop_common_titles_when_more_than_one_comma,
+    change_order_because_of_comma){
+  
+  # DELETE LATER
+  # datatable <- str_create_name_column()
+  # column <- "name"
+  # change_order_because_of_comma <- T
+  # drop_common_titles_when_one_comma <- T
+  # drop_common_titles_when_more_than_one_comma <- T
+  
+  paste0("Standardizing name column: (", column ,")") %>%
+    message_with_lines()
+
+    # 1) set-up: get original names ----
+  original_names <- names(datatable)
+  # keep original columns + clean column 
+  keep_these <- paste0(column, "_clean") %>% append(original_names, .)
+  
+  datatable_tmp <-  datatable %>% copy() %>% 
+    # 2)  create an internal column to reorder in the data in end ---- 
+  generate_internal_order_column(datatable = .) %>% 
+    # 3) rename 'column' for practicality ----
+  rename_columns(
+    datatable = .,
+    current_names = c(column),
+    new_names = c("column")) %>%
+    # 4) transliterate from latin1 to ASCII (simple 32-127 code point characters) ----
+  .[, column2 := stringi::stri_trans_general(column, 'Any-Latin') ] %>% 
+    .[, column2 := stringi::stri_trans_general(column2, 'Any-Latn') ] %>% 
+    .[, column2 := stringi::stri_trans_general(column2, 'Latin-ASCII') ] %>% 
+    # 5) everything upper case ----
+  .[, column2 := stringr::str_to_upper(column2)] %>% 
+    # 6) drop instances of multiple commas together
+    .[, column2 := stringr::str_replace(column2, pattern = ",,", replacement = ",")]  %>% 
+    # indicate number of commas 
+    .[, n_commas := stringr::str_count(column2, ",")]  %>% 
+    .[n_commas>0, column2 := str_remove_all_trailing_commas_and_spaces(column2) ] %>% 
+    .[, n_commas := stringr::str_count(column2, ",")] %>% 
+    .[, column2 := stringr::str_remove_all(column2, "\\n")]
+  
+  paste0("1) String column has been transliterated into ASCII, upper case characters.") %>%  
+    message_with_lines()
+
+  # 6) deal with commas -----
+  
+  # 6.0)  split into three datatables depending on number of commas -----
+  contain_commas_char0 <- datatable_tmp %>% copy() %>% .[n_commas==0]
+  contain_commas_char1 <- datatable_tmp %>% copy() %>% .[n_commas==1]
+  contain_commas_char2 <- datatable_tmp %>% copy() %>% .[n_commas>1]
+  
+  # 6.1) for rows with more than one comma -----
+  if(drop_common_titles_when_more_than_one_comma){
+    
+    if(nrow(contain_commas_char2)>0){
+      
+      # 6.3: for rows with more than one comma ----
+      contain_commas_char2 %<>%
+        # drop titles 
+        str_remove_all_common_titles_dt(
+          datatable = ., column = "column2",
+          prefixes = c(" ", " ", ","),
+          suffixes = c(" ", ",", " "), 
+          endswith = T, 
+          startswith =T
+        ) %>% .[, column2 := column2_clean] %>% .[, column2_clean := NULL] %>%
+        str_remove_all_common_titles_dt(
+          datatable = ., column = "column2",
+          prefixes = c(""),
+          suffixes = c(""), 
+          endswith = T, 
+          startswith =T, specific = get_common_tites(type="unambiguous")
+        ) %>% .[, column2 := column2_clean] %>% .[, column2_clean := NULL] %>%
+        str_remove_all_common_titles_dt(
+          datatable = ., column = "column2",
+          prefixes = c(" "),
+          suffixes = c(" "), 
+          endswith = T, 
+          startswith =T, specific = get_common_tites(type="educ_noperiod")
+        ) %>% .[, column2 := column2_clean] %>% .[, column2_clean := NULL] %>% 
+        # drop some pretty specific titles 
+        .[, column2 := str_trim_ws_iterate(column2)]  %>% 
+        # recompute number of commas
+        .[, n_commas := str_count(column2, ",")]  
+      
+      # store add with 0 commas to zero comma datatable
+      contain_commas_char0 <- contain_commas_char2 %>% copy() %>% 
+        .[n_commas==0] %>% 
+        rbind(contain_commas_char0, .) %>% 
+        .[order(INTERNAL_ORDER_COLUMN)]
+      
+      # store add with 1 comma to 1 comma datatable
+      contain_commas_char1 <- contain_commas_char2 %>% copy() %>% 
+        .[n_commas==1] %>% 
+        rbind(contain_commas_char1, .) %>% 
+        .[order(INTERNAL_ORDER_COLUMN)]
+      
+      # keep observations with more than one commas
+      contain_commas_char2 <- contain_commas_char2 %>% copy() %>% 
+        .[n_commas>1] %>% 
+        .[order(INTERNAL_ORDER_COLUMN)]
+      
+      
+      print_line() # %>% print()
+      paste0("2.1) String column with many commas has had common titles removed & extra commas dropped.") %>%  print()
+      print_line() # %>% print()
+      
+    }
+    
+  }
+  
+  # 6.2) For rows with one comma, remove titles & recompute # of commas ------
+  
+  if(drop_common_titles_when_one_comma){
+    
+    if(nrow(contain_commas_char1) >0){
+
+      # 6.3: for rows with more than one comma ----
+      contain_commas_char1 %<>%
+        # drop titles 
+        str_remove_all_common_titles_dt(
+          datatable = ., column = "column2",
+          prefixes = c(" ", " ", ","),
+          suffixes = c(" ", ",", " "), 
+          endswith = T, 
+          startswith =T
+        ) %>% .[, column2 := column2_clean] %>% .[, column2_clean := NULL] %>%
+        str_remove_all_common_titles_dt(
+          datatable = ., column = "column2",
+          prefixes = c(""),
+          suffixes = c(""), 
+          endswith = T, 
+          startswith =T, specific = get_common_tites(type="unambiguous")
+        ) %>% .[, column2 := column2_clean] %>% .[, column2_clean := NULL] %>%
+        str_remove_all_common_titles_dt(
+          datatable = ., column = "column2",
+          prefixes = c(" "),
+          suffixes = c(" "), 
+          endswith = T, 
+          startswith =T, specific = get_common_tites(type="educ_noperiod")
+        ) %>% .[, column2 := column2_clean] %>% .[, column2_clean := NULL] %>% 
+        .[, column2 := str_trim_ws_iterate(column2)]  %>%
+      # recompute number of commas
+        .[, n_commas := str_count(column2, ",")]  
+      
+      # store add with 0 commas to zero comma datatable
+      contain_commas_char0 <- contain_commas_char1 %>% copy() %>% 
+        .[n_commas==0] %>% 
+        rbind(contain_commas_char0, .) %>% 
+        .[order(INTERNAL_ORDER_COLUMN)]
+      
+      # store add with 1 comma to 1 comma datatable
+      contain_commas_char1 <- contain_commas_char1 %>% copy() %>% 
+        .[n_commas==1] %>% 
+        .[order(INTERNAL_ORDER_COLUMN)]
+      
+      print_line() # %>% print()
+      paste0("2.2) String column with one comma has had common titles removed & extra commas dropped.") %>%  print()
+      print_line() # %>% print()
+      
+    }
+    
+  }
+  
+  # 6.3) for rows with just one comma, change order due to commas -----
+  
+  if(change_order_because_of_comma){
+    if(nrow(contain_commas_char1) >0){
+      
+      # 6.3.1) for rows with one comma only, revert order -----
+      contain_commas_char1 %<>% 
+        # to avoid conflicting column names, rename column once more (then name back after operation)
+        rename_columns(
+          current_names = c("column"), 
+          new_names = c("MAINCOLUMN") 
+        ) %>% 
+        # invert name order over comas
+        str_invert_order_given_one_comma(
+          datatable = ., column = "column2") %>% 
+        # rename back
+        rename_columns(
+          current_names = c("MAINCOLUMN"), 
+          new_names = c("column") 
+        ) 
+      
+      print("Notice!! The warning message for: (str_invert_order_given_one_comma) is addressed in the code!")
+      
+      print_line() # %>% print()
+      paste0(
+        "3) The order of elements with one comma in (", column, ") has been inverted.",
+        " E.g. [Lname, Fname] becomes [Fname Lname]. An indicator n_commas let's us know the number of commas.", 
+        " If an element contains multiple commas, nothing is done.") %>% 
+        print()
+      print_line() # %>% print()
+      
+      
+    }
+    
+    
+  }
+  
+  # 6.4)  rbind into three datatables depending on number of commas -----
+  
+
+  paste0(
+    "4) Additional punctuation and non-characters have been cleaned &/or removed.") %>% 
+    message_with_lines()
+  
+  contain_commas_char0 %>%
+    rbind(., contain_commas_char1) %>%
+    rbind(., contain_commas_char2) %>%
+    
+    # 7) drop all punctuation & double spaces ----
+  .[, column2 := str_replace_all(column2, pattern = "[[:punct:]]", replacement = " ")] %>%
+    # 8) remove all double spaces ------
+  # 8.1) need to rename `column`
+  rename_columns(current_names = c("column"),
+                 new_names = c("column_original")) %>%
+    # replace double spaces
+    str_replace_all_double_spaces(datatable = ., column = "column2") %>%
+    # rename back
+    rename_columns(current_names = c("column_original"),
+                   new_names = c("column"))  %>%
+    # remove some additional things -----
+  .[str_detect(column2, "\\u008e"), column2 := stringr::str_replace(column2, pattern = "\\u008e", replacement =  "Z")] %>%
+    .[str_detect(column2, "\\u0092"), column2 := stringr::str_remove(column2, pattern = "\\u0092")] %>%
+    .[str_detect(column2, "\\u0093"), column2 := stringr::str_remove(column2, pattern = "\\u0093")] %>%
+    .[str_detect(column2, "\\u0094"), column2 := stringr::str_remove(column2, pattern = "\\u0094")] %>%
+    .[str_detect(column2, "\\\177"), column2 := stringr::str_remove(column2, pattern = "\\\177")] %>%
+    .[str_detect(column2, "\\\177"), column2 := stringr::str_remove(column2, pattern = "\\\177")] %>%
+    .[str_detect(column2, "\u009a"), column2 := stringr::str_replace(column2, pattern = "\u009a", replacement = "S")]  %>%
+    .[str_detect(column2,  "\\^"), column2 := stringr::str_remove(column2, pattern = "\\^")] %>%
+    .[str_detect(column2, "\\´"), column2 := stringr::str_remove(column2, pattern = "\\´")] %>%
+    .[str_detect(column2, "\\ʿ"), column2 := stringr::str_remove(column2, pattern = "\\ʿ")] %>%
+    .[str_detect(column2, "\\`"), column2 := stringr::str_remove(column2, pattern = "\\`")] %>%
+    .[str_detect(column2, "\\+"), column2 := stringr::str_remove(column2, pattern = "\\+")] %>%
+    .[str_detect(column2, "\\>"), column2 := stringr::str_remove(column2, pattern = "\\>")] %>%
+    .[str_detect(column2, "\\<"), column2 := stringr::str_remove(column2, pattern = "\\<")] %>%
+    .[str_detect(column2, "\\^"), column2 := stringr::str_remove(column2, pattern = "\\^")] %>%
+    .[str_detect(column2, "³"), column2 := stringr::str_remove(column2, pattern = "³")] %>%
+    .[str_detect(column2, "/"), column2 := stringr::str_remove(column2, pattern = "/")] %>%
+    .[, column2 := str_trim_ws_iterate(string = column2, whitespace = " ")] %>% 
+    # rename finalized columns  -----
+  rename_columns(datatable = ., 
+                 current_names = c("column", "column2"), 
+                 new_names = c(column, paste0(column, "_clean"))) %>% 
+    # subset to relevant columns + new, clean column 
+    .[, ..keep_these] %>% 
+    return()
+  
+  
+}
+
 # Section 3.2: given a data.table with a character col, indicate what needs to be removed ----
 str_remove_all_strings_and_single_letters <- function( # used to be drop_strings
     datatable,
@@ -1330,63 +1593,33 @@ get_common_tites <- function(type = "educ_period") {
     warning <- possible_titles %>%
       glue::glue_collapse(x = ., sep = ", ") %>%
       paste0("Possible types are: ", .)  
-    warning(warning)
+    errorCondition(warning)
   }
   
+  #  definitions ---------
   # every day & educational 
-  if (type == "educ_all") {
-    out <- c(
-      "MR",
-      "MSR",
-      "MS",
-      "BA",
-      "BSC",
-      "MSC" ,
-      "MBA" ,
-      "MA",
-      "MD",
-      "PHD",
-      "DR" ,
-      "DOCTOR",
-      "ESQUIRE",
-      "Professor",
-      "LLM",
-      "LLB",
-      "PROF",
-      
-      "MR." ,
-      "MSR." ,
-      "MS.",
-      "BSC.",
-      "MSC.",
-      "MBA.",
-      "MA." ,
-      "MD." ,
-      "PH.D.",
-      "PHD." ,
-      "DR." ,
-      "LLM." ,
-      "LLB.",
-      "PROF.",
-      "ENG."
-    ) }
-  
+  educ_unambiguous <-   c("DOCTOR",
+  "ESQUIRE",
+  "PROFESSOR")
   # every day & educational 
-  if (type == "educ_unambiguous"|type == "unambiguous") {
-    out <- c(
-      "DOCTOR",
-      "ESQUIRE", 
-      "PROFESSOR"
-    ) 
-    
-    if(type == "unambiguous"){
-      unambiguous <- out
-    }
-    
-    }
-  
-  if (type == "educ_period") {
-    out <- c(
+  educ_noperiod <- c(
+    "MR",
+    "MSR",
+    "MS",
+    "BA",
+    "BSC",
+    "MSC" ,
+    "MBA" ,
+    "MA",
+    "MD",
+    "PHD",
+    "DR" ,
+    "LLM",
+    "LLB",
+    "PROF")
+  # every day & educational 
+  educ_period <- 
+    c(
       "B\\.A\\.",
       "MR\\." ,
       "MSR\\." ,
@@ -1404,229 +1637,127 @@ get_common_tites <- function(type = "educ_period") {
       "PROF\\.",
       "ENG\\."
     ) 
-    
-    
-  }
-  
   # military
-  if (type == "military") {
-    
-    out <-
-      c(
-        'COMMAND CHIEF MASTER SERGEANT',
-        'MASTER CHIEF PETTY OFFICER',
-        'SENIOR CHIEF PETTY OFFICER',
-        'COMMAND CHIEF MASTER SGT\\.',
-        'LIEUTENANT JUNIOR GRADE',
-        'MASTER GUNNERY SERGEANT',
-        'SENIOR MASTER SERGEANT',
-        'COMMAND SERGEANT MAJOR',
-        'CHIEF WARRANT OFFICER',
-        'CHIEF MASTER SERGEANT',
-        'SERGEANT FIRST CLASS',
-        'LIEUTENANT COMMANDER',
-        'PRIVATE FIRST CLASS',
-        'CHIEF PETTY OFFICER',
-        'LIEUTENANT GENERAL',
-        'LIEUTENANT COLONEL',
-        'OF THE MARINE CORP',
-        'SECOND LIEUTENANT',
-        'BRIGADIER GENERAL',
-        'COMMAND SGT\\. MAJ\\.',
-        'SEAMAN APPRENTICE',
-        'FIRST LIEUTENANT',
-        'OF THE AIR FORCE',
-        'MASTER SGT\\. MAJ\\.',
-        'GUNNERY SERGEANT',
-        'WARRANT OFFICER',
-        'MASTER SERGEANT',
-        'FIRST SERGEANT',
-        'SERGEANT MAJOR',
-        'SGT\\. 1ST CLASS',
-        'STAFF SERGEANT',
-        'SEAMAN RECRUIT',
-        'LANCE CORPORAL',
-        'SENIOR AIRMAN',
-        'MAJOR GENERAL',
-        'PETTY OFFICER',
-        'AIRMAN BASIC',
-        'VICE ADMIRAL',
-        'REAR ADMIRAL',
-        'SECOND CLASS',
-        'GUNNERY SGT\\.',
-        'MASTER SGT\\.',
-        'OF THE ARMY',
-        'FIRST CLASS',
-        'THIRD CLASS',
-        'OF THE NAVY',
-        'SECOND LT\\.',
-        'CHIEF SGT\\.',
-        'BRIG\\. GEN\\.',
-        'STAFF SGT\\.',
-        'SPECIALIST',
-        'LIEUTENANT',
-        'LANCE CPL\\.',
-        'TECHNICAL',
-        'MAJ\\. GEN\\.',
-        'SGT\\. MAJ\\.',
-        'VICE ADM\\.',
-        'REAR ADM\\.',
-        'COMMANDER',
-        'LT\\. CMDR\\.',
-        '1ST CLASS',
-        '2ND CLASS',
-        '3RD CLASS',
-        '(RETIRED)',
-        'AIR CHIEF',
-        'RESERVIST',
-        'SERGEANT',
-        'LT\\. GEN\\.',
-        'LT\\. COL\\.',
-        '1ST SGT\\.',
-        'CORPORAL',
-        'LT\\. J\\.G\\.',
-        'GENERAL',
-        '1ST LT\\.',
-        'COLONEL',
-        'CAPTAIN',
-        'ADMIRAL',
-        'PRIVATE',
-        'RESERVE',
-        'AIRMAN',
-        'ENSIGN',
-        'SEAMAN',
-        '(RET\\.)',
-        'STAFF',
-        'MAJOR',
-        'CAPT\\.',
-        'CMDR\\.',
-        'BRIG\\.',
-        'RADM\\.',
-        'CORPS',
-        'SGT\\.',
-        'MAJ\\.',
-        'GEN\\.',
-        'COL\\.',
-        'CPL\\.',
-        'SPC\\.',
-        'ADM\\.',
-        'PFC\\.',
-        'PVT\\.',
-        'DIV\\.',
-        'MAR\\.',
-        'RES\\.',
-        'LT\\.',
-        'FD\\.'
-      )
-    
-  }
-  
+  military_unambiguous <- c(
+    'COMMAND CHIEF MASTER SERGEANT',
+    'MASTER CHIEF PETTY OFFICER',
+    'SENIOR CHIEF PETTY OFFICER',
+    'LIEUTENANT JUNIOR GRADE',
+    'MASTER GUNNERY SERGEANT',
+    'SENIOR MASTER SERGEANT',
+    'COMMAND SERGEANT MAJOR',
+    'CHIEF WARRANT OFFICER',
+    'CHIEF MASTER SERGEANT',
+    'SERGEANT FIRST CLASS',
+    'LIEUTENANT COMMANDER',
+    'PRIVATE FIRST CLASS',
+    'CHIEF PETTY OFFICER',
+    'LIEUTENANT GENERAL',
+    'LIEUTENANT COLONEL',
+    'OF THE MARINE CORP',
+    'SECOND LIEUTENANT',
+    'BRIGADIER GENERAL',
+    'SEAMAN APPRENTICE',
+    'FIRST LIEUTENANT',
+    'OF THE AIR FORCE',
+    'GUNNERY SERGEANT',
+    'WARRANT OFFICER',
+    'MASTER SERGEANT',
+    'FIRST SERGEANT',
+    'SERGEANT MAJOR',
+    'STAFF SERGEANT',
+    'SEAMAN RECRUIT',
+    'LANCE CORPORAL',
+    'SENIOR AIRMAN',
+    'MAJOR GENERAL',
+    'PETTY OFFICER',
+    'AIRMAN BASIC',
+    'VICE ADMIRAL',
+    'REAR ADMIRAL',
+    'SECOND CLASS',
+    'OF THE ARMY',
+    'FIRST CLASS',
+    'THIRD CLASS',
+    'OF THE NAVY',
+    'SPECIALIST',
+    'LIEUTENANT',
+    'TECHNICAL',
+    'COMMANDER',
+    '1ST CLASS',
+    '2ND CLASS',
+    '3RD CLASS',
+    '(RETIRED)',
+    'AIR CHIEF',
+    'RESERVIST',
+    'SERGEANT',
+    'CORPORAL',
+    'GENERAL',
+    'COLONEL',
+    'CAPTAIN',
+    'ADMIRAL',
+    'PRIVATE',
+    'RESERVE'#,
+    #'MAJOR'
+  )
   # military
-  if (type == "military_unambiguous"|type == "unambiguous") {
-    
-    out <-
-      c(
-        'COMMAND CHIEF MASTER SERGEANT',
-        'MASTER CHIEF PETTY OFFICER',
-        'SENIOR CHIEF PETTY OFFICER',
-        'LIEUTENANT JUNIOR GRADE',
-        'MASTER GUNNERY SERGEANT',
-        'SENIOR MASTER SERGEANT',
-        'COMMAND SERGEANT MAJOR',
-        'CHIEF WARRANT OFFICER',
-        'CHIEF MASTER SERGEANT',
-        'SERGEANT FIRST CLASS',
-        'LIEUTENANT COMMANDER',
-        'PRIVATE FIRST CLASS',
-        'CHIEF PETTY OFFICER',
-        'LIEUTENANT GENERAL',
-        'LIEUTENANT COLONEL',
-        'OF THE MARINE CORP',
-        'SECOND LIEUTENANT',
-        'BRIGADIER GENERAL',
-        'SEAMAN APPRENTICE',
-        'FIRST LIEUTENANT',
-        'OF THE AIR FORCE',
-        'GUNNERY SERGEANT',
-        'WARRANT OFFICER',
-        'MASTER SERGEANT',
-        'FIRST SERGEANT',
-        'SERGEANT MAJOR',
-        'STAFF SERGEANT',
-        'SEAMAN RECRUIT',
-        'LANCE CORPORAL',
-        'SENIOR AIRMAN',
-        'MAJOR GENERAL',
-        'PETTY OFFICER',
-        'AIRMAN BASIC',
-        'VICE ADMIRAL',
-        'REAR ADMIRAL',
-        'SECOND CLASS',
-        'OF THE ARMY',
-        'FIRST CLASS',
-        'THIRD CLASS',
-        'OF THE NAVY',
-        'SPECIALIST',
-        'LIEUTENANT',
-        'TECHNICAL',
-        'COMMANDER',
-        '1ST CLASS',
-        '2ND CLASS',
-        '3RD CLASS',
-        '(RETIRED)',
-        'AIR CHIEF',
-        'RESERVIST',
-        'SERGEANT',
-        'CORPORAL',
-        'GENERAL',
-        'COLONEL',
-        'CAPTAIN',
-        'ADMIRAL',
-        'PRIVATE',
-        'RESERVE'#,
-        #'MAJOR'
-      )
-    
-    if(type == "unambiguous"){
-      unambiguous <- append(unambiguous, out)
-    }
-    
-  }
-  
+  military_short <-  c(
+    'MAJOR',
+    'CAPT\\.',
+    'CMDR\\.',
+    'BRIG\\.',
+    'RADM\\.',
+    'CORPS',
+    'SGT\\.',
+    'MAJ\\.',
+    'GEN\\.',
+    'COL\\.',
+    'CPL\\.',
+    'SPC\\.',
+    'ADM\\.',
+    'PFC\\.',
+    'PVT\\.',
+    'DIV\\.',
+    'MAR\\.',
+    'RES\\.',
+    'LT\\.',
+    'FD\\.'
+  )
   # political & religious
-  if (type == "poli") {
-    out <-  c(
-      "SIR",
-      "LORD",
-      "ACTING",
-      "PRINCESS",
-      "PRINCE",
-      "ARCHBISHOP",
-      "VICE",
-      "PRESIDENT",
-      "CHAIRMAN",
-      "MIN\\.",
-      "CHIEF",
-      "AYATOLLAH",
-      "CROWN",
-      "HOJJAT OL-ESLAM",
-      "REVEREND",
-      "BISHOP"
-    )
-    
-    
-  }
+  poli <- c(
+    "SIR",
+    "LORD",
+    "ACTING",
+    "PRINCESS",
+    "PRINCE",
+    "ARCHBISHOP",
+    "VICE",
+    "PRESIDENT",
+    "CHAIRMAN",
+    "MIN\\.",
+    "CHIEF",
+    "AYATOLLAH",
+    "CROWN",
+    "HOJJAT OL-ESLAM",
+    "REVEREND",
+    "BISHOP"
+  )
   
-  if (type == "oth") {
-    
-    out <- c(
-      "DIRECTOR"
-    )
-    
-  }
+  oth <- c(
+    "DIRECTOR"
+  )
   
+  # ---------
+
+  if (type == "educ_all") {out <- append(educ_period, educ_noperiod, educ_unambiguous) }
+  if (type == "educ_unambiguous") {out <- educ_unambiguous}
+  if (type == "educ_period") {out <-educ_period}
+  if (type == "educ_noperiod") {out <-educ_noperiod}
+  if (type == "military") {out <- append(military_short, military_unambiguous)}
+  if (type == "military_unambiguous") {out <-military_unambiguous}
+  if (type == "poli") {out <-  poli}
+  if (type == "oth") {out <- oth}
   if(type == "unambiguous"){
-    out <- unambiguous  
+    out <- append(military_unambiguous, educ_unambiguous)  
   }
   
   out <- out %>% 
@@ -1672,6 +1803,116 @@ str_remove_all_common_titles <- function(vector, prefix="", suffix="", specific=
     # DROP double commas again
     str_replace_all(., ",,", ",")   %>% 
     str_replace_all(., ", ,", ",")   %>% 
+    return()
+}
+
+# Section 3.12.2: drop common titles from strings: helper functions -------
+str_remove_all_common_titles_dt <- function(datatable,
+                                            column,
+                                            prefixes = c(" ", ",", ",", " "),
+                                            suffixes = c(" ", ",", " ", ","),
+                                            startswith = T,
+                                            endswith = T,
+                                            specific = NULL) {
+  # datatable <- peppercat_out_yearly
+  # column <- "person_name"
+  # prefixes <- c(" ", ",", ",", " ")
+  # suffixes <- c(" ", ",", " ", ",")
+  
+  if (length(prefixes) != length(suffixes)) {
+    errorCondition(message = "Length of prefixes must match length of suffixes!")
+  }
+  
+  # set up
+  dt <- copy(datatable) %>%
+    rename_columns(current_names = c(column),
+                   new_names = c("col")) %>%
+    generate_internal_order_column(.)
+  
+  
+  # extract common titles
+  if (is.null(specific)) {
+    # load common titles
+    common_titles <- get_common_tites(type = "educ_period") %>%
+      append(., get_common_tites(type = "educ_unambiguous")) %>%
+      append(., get_common_tites(type = "military")) %>%
+      append(., get_common_tites(type = "oth")) %>%
+      append(., get_common_tites(type = "poli"))
+  } else{
+    common_titles <- specific
+  }
+  
+  # unconstrained
+  for (i in 1:length(prefixes)) {
+    
+    prefix <- prefixes[i]
+    suffix <- suffixes[i]
+    
+    for (title in common_titles) {
+      title_to_search <- paste0(prefix, title, suffix)
+      title_to_delete <- title
+      
+      paste0(
+        "Searching for (",
+        title_to_search,
+        "). Removing common title in parenthesis: (",
+        title_to_delete,
+        "). This excludes the specified prefix & suffix."
+      ) %>%
+        message_with_lines()
+      
+      dt <- dt[str_detect(string = col, pattern = title_to_search),
+               col := str_remove_all(string = col, pattern = title_to_delete)]
+      
+    }
+  }
+  
+  # constrained to start of string
+  if (startswith == TRUE) {
+    unique_suffixes <- unique(suffixes)
+    
+    for (i in 1:length(unique_suffixes)) {
+      suffix <- unique_suffixes[i]
+      
+      
+      for (title in common_titles) {
+        title_to_search_startswith <- paste0(title, suffix)
+        title_to_delete <- title
+        
+        
+        dt <-
+          dt[startsWith(x = col, prefix =  title_to_search_startswith),
+             col := str_remove_all(string = col, pattern = title_to_delete)]
+      }
+    }
+  }
+  
+  # constrained to end of string
+  if (endswith == TRUE) {
+    unique_prefixes <- unique(prefixes)
+    
+    for (i in 1:length(unique_prefixes)) {
+      prefix <- unique_prefixes[i]
+      
+      for (title in common_titles) {
+        title_to_search_endswith <- paste0(prefix, title)
+        title_to_delete <- title
+        
+        
+        dt <- dt[endsWith(x = col, preffix = title_to_search_endswith),
+                 col := str_remove_all(string = col, pattern = title_to_delete)]
+      }
+    }
+  }
+  
+
+  dt %>%
+    .[str_detect(col, ", ,"), col := str_replace_all(col, pattern = ", ,", replacement = ",")] %>%
+    .[str_detect(col, ",,"), col := str_replace_all(col, pattern = ",,", replacement = ",")] %>%
+    .[order(INTERNAL_ORDER_COLUMN)] %>%
+    .[, INTERNAL_ORDER_COLUMN := NULL] %>%
+    rename_columns(current_names = c(column),
+                   new_names = c("col")) %>%
     return()
 }
 
