@@ -384,6 +384,69 @@ create_dummy_if_any_category_present <-
   }
 
 
+# indicate years present: spit out matrix with the years available -----
+indicate_years_present <- function(
+    datatable, 
+    year_min, 
+    year_max, 
+    variable_start_str, 
+    variable_end_str){
+  
+  # delete later
+  # parameters to be defined
+  # datatable <- peppercat2 %>% copy()
+  # year_min <- 1990
+  # year_max <- 2022+3
+  # variable_start_str = "year_start_str"
+  # variable_end_str = "year_end_assumed_str"  
+  
+  message_with_lines("Notice: start & end year variables must be characters!")
+  
+  # define order
+  year_order <- (c(year_min:year_max)-year_min)+1
+  year_order_rev <- year_order %>% rev()
+  available_years <- c(year_min:(year_max)) %>% as.character()
+  available_years_rev <- available_years %>% rev()
+  
+  # Section 2: create an indicator for each year -----
+  
+  # Section 2.1: start year -----
+  year_start_mat <- datatable %>% copy() %>%
+    create_boolean_using_vector_of_categories(
+      datatable = ., 
+      # correct order
+      categories = available_years,
+      variable = variable_start_str
+    ) %>% 
+    as.matrix() *1
+  
+  # Section 2.2: end year -----
+  year_end_mat_rev <- datatable %>% copy() %>%
+    create_boolean_using_vector_of_categories(
+      datatable = ., 
+      # reversed order
+      categories = available_years_rev,
+      variable = variable_end_str
+    ) %>% 
+    as.matrix()  *1
+  
+  # Section 3: sum across years -----
+  for(j in 1:(ncol(year_start_mat)-1)){
+    print(j)
+    year_start_mat[,j+1] <- year_start_mat[,j+1] + year_start_mat[,j]
+    year_end_mat_rev[,j+1] <- year_end_mat_rev[,j+1] + year_end_mat_rev[,j]
+  }
+  
+  # reverse end matrix order to correct order
+  year_end_mat <- year_end_mat_rev[, year_order_rev]
+  
+  # their intersection sums to 2 
+  years_present <- ((year_start_mat + year_end_mat) == 2)*1 
+  
+  return(years_present)
+  
+}
+
 
 
 ################################################################################
