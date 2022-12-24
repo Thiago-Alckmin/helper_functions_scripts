@@ -453,17 +453,19 @@ create_dummy_matrix_to_indicate_years_present <- function(
 # Section 2: Merging ###########################################################
 ################################################################################
 
-# Section 2.1: this function takes in a data-table indexed by an ID variable & outputs two data.tables as a list: -----
+# Section 2.1: this function takes in a data-table indexed by an ID variable & outputs two data.tables as a list: (used to be unique_by_column_with_threshold_ids) -----
 ## once which has more than 'threshold' id's per 'by_column' & another with the wide data & 'threshold columns'
-unique_by_column_with_threshold_ids <- function(datatable, id, by_column, threshold, dir_save, wide_summary_name){
+reshape_unique_bycol_with_t_id_cols <- function(datatable, id, by_column, threshold, dir_save, wide_summary_name, unique_by_column_id_prefix = "i", fill=""){
   
   # DELETE LATER
-  # datatable <- datatable_x %>% copy()
-  # id <- id_x
-  # by_column <- by_column
-  # dir_save <- dir_save
-  # wide_summary_name <- "political_players"
-  # threshold <- 10
+  # datatable = datatable_y_alt %>% copy()
+  # id = "id_y"
+  # by_column = "by_column"
+  # threshold = threshold1
+  # dir_save = dir_save
+  # wide_summary_name =  paste0("bvd", "_", COUNTRY, "_") 
+  # unique_by_column_id_prefix = "y", 
+  # fill = ""
   
   var_name <- id
   
@@ -477,7 +479,7 @@ unique_by_column_with_threshold_ids <- function(datatable, id, by_column, thresh
     .[by_column!=""] %>% 
     # create a unique id
     .[, unique_by_column_id := .GRP, by_column] %>% 
-    .[, unique_by_column_id := paste0("i", unique_by_column_id)] %>% 
+    .[, unique_by_column_id := paste0(unique_by_column_id_prefix, unique_by_column_id)] %>% 
     .[, per_by_column := 1:.N ,by_column] 
   
   # export this 
@@ -487,11 +489,13 @@ unique_by_column_with_threshold_ids <- function(datatable, id, by_column, thresh
     fwrite(., filename)
   
   # display 
-  paste0("Displaying CMF up til threshold for id: (",id_x, ") and by_column: (", by_column, ")")
-  datatable_alt %>% copy() %>% .[, .N, .(per_by_column)] %>% 
+  paste0("Displaying CMF up til threshold for id: (",id, ") and by_column: (", by_column, ")") %>% print()
+  stats <- datatable_alt %>% copy() %>% .[, .N, .(per_by_column)] %>% 
     .[, cumsum := cumsum(N)] %>%
     .[, cumsum_perc := cumsum/sum(N)] %>%
-    .[1:threshold] %>% print() # 98% of cases occur below 10
+    .[1:threshold] 
+  
+  stats %>% print() # 98% of cases occur below 10
   
   # cases where we have more than 10 pepids, are left for later;  -----
   # identify names with many linked IDs
@@ -504,15 +508,17 @@ unique_by_column_with_threshold_ids <- function(datatable, id, by_column, thresh
     .[max_per_by_column<=threshold] %>% 
     .[, .(id, by_column, unique_by_column_id, per_by_column)] %>% 
     .[, per_by_column := paste0(var_name, "_", per_by_column)] %>% 
-    dcast(., by_column + unique_by_column_id ~per_by_column, value.var = "id")
+    dcast(., by_column + unique_by_column_id ~per_by_column, value.var = "id", fill = fill)
   
   out <- list()
+  out$stats <- stats %>% copy()
   out$wide <- datatable_wide %>% copy()
   out$try_later <- datatable_alt_try_later %>% copy()
   
   return(out)
   
 }
+
 
 # Section 2.2: split pattern into threshold+1 columns then compute the pairwise combination of these threshold+1 columns ----------
 split_pattern_into_tplus1_cols_pairwise_combinations <- function(
@@ -695,7 +701,452 @@ pairwise_merge_indices <- function(datatable_x, id_x, col_x,
   
 }
 
+# create column pairwise combinations ---------
 
+create_unordered_nonrepeating_combinations_dt <- function(max){
+  
+  strings <- c(1:(max))
+  
+  CJ(A= strings, B= strings, sorted = T, unique = T) %>% 
+    .[A!=B] %>% 
+    .[, column := paste0("s","_", A,"_", B)] %>% 
+    .[, sum := A + B] %>% 
+    .[order(sum, A)] %>% 
+    return()
+  
+}
+
+
+# split pattern into threshold+1 columns then compute the pairwise combination of these threshold+1 columns
+split_pattern_into_tplus1_cols_pairwise_combinations <- function(
+    datatable, id,string, pattern, threshold_split){
+  
+  
+  # delete later
+  # datatable <- datatable_y_wide_step2 %>% copy() %>%
+  #   .[, .(by_column, unique_by_column_id_y)]
+  # id = "unique_by_column_id_y"
+  # string = "by_column"
+  # pattern = " "
+  # threshold_split = threshold2
+  
+  
+  # section 1: rename columns & comupute # of occurances of pattern ----
+  datatable <- datatable %>% copy() %>% 
+    rename_columns(
+      datatable = ., 
+      current_names = c(id, string),
+      new_names = c("id", "string")) %>% 
+    .[, string := str_trim(string, side = c("both"))] %>% 
+    .[, n_pattern := str_count(string=string, pattern = pattern)] 
+  
+  # section 2: share statistics ----  
+  paste0("Printing number of pattern: (", pattern, ") occurances in the data.") %>% print()
+  stats <- datatable %>% 
+    .[, .N, n_pattern] %>% 
+    .[order(N)]
+  stats %>% print()
+  paste0("threshold_split is currently set to: (", threshold_split, "). threshold_split==n-1. Resulting in (n)*(n-1) (", threshold_split*(threshold_split+1), ") columns.") %>% print()
+  
+  print(threshold_split)
+  
+  
+  # in case threshold_split > n_pattern; create completely empty columns
+  max_n_pattern <- stats[, max(n_pattern)]
+  if(max_n_pattern<threshold_split){
+    
+    print_line %>% print()
+    
+    paste0("threshold_split (", threshold_split,") exceeds number of occurances of pattern: (",pattern,"). ", 
+           "Resetting threshold_split to the maximum number of the pattern. ",
+           "Original threshold_split: (",threshold_split,"). New threshold_split: (",max_n_pattern,")") %>% print()
+    
+    print_line %>% print()
+    
+    threshold_split <- max_n_pattern
+  } 
+  
+  # in case threshold_split < n_pattern; create completely empty columns
+  min_n_pattern <- stats[, min(n_pattern)]
+  if(min_n_pattern>threshold_split){
+    
+    print_line %>% print()
+    
+    paste0("threshold_split (", threshold_split,") is always smaller then the minimum number of occurances of pattern: (",pattern,"). ",
+           "Resetting threshold_split to the maximum number of the pattern. ",
+           "Original threshold_split: (",threshold_split,"). New threshold_split: (",max_n_pattern,")") %>% print()
+    
+    print_line %>% print()
+    
+    
+    
+    threshold_split <- min_n_pattern
+  }
+  
+  # section 3: split the columns  ----  
+  datatable_try_later <- datatable %>% copy() %>% 
+    .[n_pattern>threshold_split]
+  
+  datatable_names <- names(datatable)
+  string_split_colnames <- paste0("s_",c(1:(threshold_split+1)))
+  
+  datatable_split <- datatable %>% copy() %>% 
+    .[n_pattern<=threshold_split] %>% 
+    dt_separate(
+      dt_ = .,
+      col = string, 
+      into = string_split_colnames,
+      sep = pattern,
+      fill = "", fixed = T, remove = F)
+  
+  # section 4.1: create a datatable with all column combinations  ----  
+  possible_columns <- create_unordered_nonrepeating_combinations_dt(max=threshold_split+1) %>% 
+    .[, A := paste0("_", A)] %>% 
+    .[, B := paste0("_", B)]
+  
+  # section 4.2: create all possible combinations in the data ----  
+  for(row in 1:nrow(possible_columns)){
+    
+    print(row)
+    
+    stringA <- possible_columns[row] %>% .[, A] %>% paste0("s", .)
+    stringB <- possible_columns[row] %>% .[, B] %>% paste0("s", .)
+    stringAB <- possible_columns[row] %>% .[, column]
+    
+    datatable_split <- datatable_split %>% 
+      rename_columns(
+        datatable = ., 
+        current_names = c(stringA, stringB), 
+        new_names = c("stringA", "stringB") 
+      ) %>% 
+      .[stringA!=""&stringB!="", stringAB := paste(stringA, stringB, sep=" ")] %>% 
+      .[stringA==""|stringB=="", stringAB := ""] %>% 
+      rename_columns(
+        datatable = ., 
+        current_names = c("stringA", "stringB", "stringAB"), 
+        new_names = c(stringA, stringB, stringAB) 
+      )
+    
+  }
+  
+  # section 5: final details to export ----  
+  # keep these columns
+  keep_these <- c(id, string, "n_pattern") %>% append(possible_columns[, unique(column)])
+  
+  # rename columns back 
+  datatable_split <- datatable_split %>% copy() %>% 
+    rename_columns(
+      datatable = ., 
+      current_names = c("id", "string"),
+      new_names = c(id, string)) %>% 
+    .[, ..keep_these] 
+  
+  # return 
+  out <- list()
+  out$threshold_split_used <- threshold_split
+  out$stats <- stats %>% copy()
+  out$try_later <- datatable_try_later %>% copy()
+  out$pairwise_split <-  datatable_split %>% copy() 
+  
+  
+  
+  
+  num <- out$stats %>% .[n_pattern<=threshold_split] %>% .[, sum(N)]
+  den <- out$stats %>% .[, sum(N)] 
+  paste0((num/den)*100, "% of the observations from the datatable were split due to the threshold_split (",threshold_split,") provided.") %>% print()
+  
+  return(out)
+  
+}
+
+# perform the pairwise merge & get appropriate indices ------
+merge_on_many_columns_and_produce_links <- function(
+    datatable_x, id_x, col_x, by_columns_x,
+    datatable_y, id_y, col_y, by_columns_y,
+    max_index_cutoff=3){
+  
+  #  delete later
+  #   datatable_x = datatable_x_pairs
+  # datatable_y = datatable_y_pairs
+  # id_x = "unique_by_column_id_x"
+  # id_y = "unique_by_column_id_y"
+  # col_x =  "by_column"
+  # col_y = "by_column"
+  # by_columns_x = by_columns_x
+  # by_columns_y = by_columns_y
+  # max_index_cutoff = threshold_match_cutoff
+  
+  print_line %>% print()
+  
+  print("Running function: (merge_on_many_columns_and_produce_links)")
+  
+  print_line %>% print()
+  
+  paste0("This pair-wise merge function (pairwise_merge) takes two data-sets & produces a data-set linking matched ids from both.", 
+         "Essentially, it does the following:",
+         "1) It sequentially merges two data-sets datatable_x & datatable_y individually ",
+         "on each one of their columns specified in: by_columns_x & by_columns_y. ", 
+         "Since there are (",length(by_columns_x),") columns for x and (",length(by_columns_y),") columns for y, ",
+         "there will be (",length(by_columns_x)*length(by_columns_x),") merges in total. ",
+         "2) For each column pair (e.g. column s_1_2 in x & s_2_1 in y), the function reshapes the datatables into wide format.", 
+         "3) If a specific row has a (max_index_cutoff) > (",max_index_cutoff,"), we disconsider that row to avoid over-matching.", 
+         "4) The final output indicates the linked indices for both data-sets & the pair that links them.") %>% print()
+  print_line %>% print()
+  
+  merge_index <- 1
+  merge_index_total <- length(by_columns_x)*length(by_columns_y)
+  
+  # section 1: for each pair in the x datatable; create a long data-set with all the links ------
+  # delete later  # col_x <- by_columns_x[1]
+  for(col_x in by_columns_x) {
+    
+    paste0("Column from data.table x: (",col_x,")") %>% print()
+    print_line %>% print()
+    
+    # subset the datatable to that column + the by_column we will merge on 
+    datatable_x_tmp <- datatable_x %>% copy() %>% 
+      rename_columns(
+        datatable = .,
+        current_names = c(id_x, col_x),
+        new_names = c("id_x", "by_col")
+      ) %>%
+      .[, .(id_x, by_col)] %>%
+      # drop empty rows
+      .[!((by_col == "") | (by_col == " ") | (by_col == "  "))] %>%   
+      # create an index to reshape, to get one unique obs per name pair
+      .[, index := 1:.N, by_col] %>% 
+      .[, max_index := max(index, na.rm=T), by_col] %>% 
+      .[, index := paste0("x_",index)] 
+    
+    # show some stats
+    show <- max(10, max_index_cutoff)
+    datatable_x_tmp %>% .[, .N, max_index] %>% .[order(max_index)] %>% .[1:show] %>% print()
+    paste0("max_index cut-off is: (", max_index_cutoff, ")") %>% print()
+    
+    # do the reshaping for observations that have less than max_index_cutoff linked observations.
+    datatable_x_tmp_wide <- datatable_x_tmp %>% copy() %>% 
+      # variable can't show up to more than x unique ids
+      .[max_index<max_index_cutoff] %>%
+      .[, max_index := NULL] %>% 
+      dcast(., by_col~index, value.var="id_x", fill = "")
+    
+    # do the same as above for the y columns (won`t comment exact same code)
+    # delete later    # col_y <- by_columns_y[1]
+    for (col_y in by_columns_y) {
+      
+      paste0("Column from data.table y: (",col_y,")") %>% print()
+      print_line %>% print()
+      
+      datatable_y_tmp <- datatable_y %>%
+        rename_columns(
+          datatable = .,
+          current_names = c(id_y, col_y),
+          new_names = c("id_y", "by_col")
+        ) %>%
+        .[, .(id_y, by_col)] %>%
+        # drop empty rows
+        .[!((by_col == "") | (by_col == " ") | (by_col == "  "))] %>% 
+        .[, index := 1:.N, by_col] %>% 
+        .[, max_index := max(index, na.rm=T), by_col] %>% 
+        .[, index := paste0("y_",index)] 
+      
+      
+      
+      datatable_y_tmp %>% .[, .N, max_index] %>% .[order(max_index)] %>% .[1:show] %>%  print()
+      paste0("max_index cut-off is: (", max_index_cutoff, ")") %>% print()
+      
+      datatable_y_tmp_wide <- datatable_y_tmp %>% copy() %>% 
+        # variable can't show up to more than 15 unique ids
+        .[max_index<max_index_cutoff] %>%
+        .[, max_index := NULL] %>% 
+        dcast(., by_col~index, value.var="id_y", fill = "")
+      
+      # now is the time to merge/ we are merging on the word pairs, if the word pair exists
+      merge_tmp <- merge(x = datatable_x_tmp_wide,
+                         y = datatable_y_tmp_wide,
+                         by = "by_col",
+                         all = F) %>%
+        .[, `:=`(by_x = col_x, by_y = col_y)]
+      
+      print_line %>% print()
+      paste0("Merge ", merge_index, "/", merge_index_total, " done!") %>% print()
+      merge_index <- merge_index + 1
+      print_line %>% print()
+      
+      if (col_y == by_columns_y[1]) {
+        merge_tmp_out <- merge_tmp %>% copy()
+        
+      } else{
+        merge_tmp_out <- merge_tmp %>% copy() %>% rbind(merge_tmp_out, ., fill=T)
+        
+      }
+      
+    }
+    
+    if (col_x == by_columns_x[1]) {
+      merge_out <- merge_tmp_out %>% copy()
+      
+    } else{
+      merge_out <- merge_tmp_out %>% copy() %>% rbind(merge_out, ., fill=T)
+      
+    }
+    
+  }
+  
+  print_line %>% print()
+  paste0("Merging concluded. Reshaping and outputting index crosswalk.") %>% print()
+  print_line %>% print()
+  
+  # return 
+  merge_out <- merge_out %>% copy() %>% 
+    rename_columns(
+      datatable = ., 
+      current_names = c("by_col"), 
+      new_names = c("pairwise_by_column")) 
+  
+  x_reshape_columns <-  names(merge_out) %>% .[startsWith(prefix = "x_",x = . )] %>% append(., c("pairwise_by_column"))
+  y_reshape_columns <-  names(merge_out) %>% .[startsWith(prefix = "y_",x = . )] %>% append(., c("pairwise_by_column"))
+  
+  merge_out_x <- merge_out %>% copy() %>% 
+    # subset data to by_column & all x name links
+    .[, ..x_reshape_columns] %>% 
+    # reshape 
+    melt(., id=c("pairwise_by_column"))  %>% 
+    # drop missing/unmatched observations
+    .[!(is.na(value)|value=="")] %>% 
+    rename_columns(
+      datatable = .,
+      current_names = c("variable", "value"), 
+      new_names = c("index", "unique_by_column_id_x") 
+    ) %>% 
+    .[, .(pairwise_by_column, unique_by_column_id_x)] %>% 
+    # drop duplicated observations, if they exist
+    .[, agg_level := paste0(pairwise_by_column, unique_by_column_id_x)] %>% 
+    .[!duplicated(agg_level)] %>% 
+    .[, agg_level := NULL]  
+  
+  merge_out_y <- merge_out %>% copy() %>% 
+    # subset data to by_column & all y name links
+    .[, ..y_reshape_columns] %>% 
+    # reshape 
+    melt(., id=c("pairwise_by_column"))  %>% 
+    # drop missing/unmatched observations
+    .[!(is.na(value)|value=="")] %>% 
+    rename_columns(
+      datatable = .,
+      current_names = c("variable", "value"), 
+      new_names = c("index", "unique_by_column_id_y") 
+    ) %>% 
+    .[, .(pairwise_by_column, unique_by_column_id_y)] %>% 
+    # drop duplicated observations, if they exist
+    .[, agg_level := paste0(pairwise_by_column, unique_by_column_id_y)] %>% 
+    .[!duplicated(agg_level)] %>% 
+    .[, agg_level := NULL]  
+  
+  
+  
+  # merge both data-sets once more to get all possible links
+  merge(merge_out_y, merge_out_x, by='pairwise_by_column', all=T, allow.cartesian=TRUE)  %>% 
+    return()
+  
+}
+
+# perform the entire pairwise merge process -----
+pairwise_merge_links <- function(
+    datatable_x, unique_by_column_id_x,
+    datatable_y, unique_by_column_id_y,
+    by_column,
+    threshold_split,
+    threshold_match_cutoff
+){
+  
+  # delete later
+  # datatable_x = datatable_x_wide_step2 %>% copy() %>% .[, .(by_column, unique_by_column_id_x)]
+  # datatable_y = datatable_y_wide_step2 %>% copy() %>% .[, .(by_column, unique_by_column_id_y)]
+  # unique_by_column_id_x = "unique_by_column_id_x"
+  # unique_by_column_id_y = "unique_by_column_id_y"
+  # by_column = "by_column"
+  # threshold_split = threshold2
+  # threshold_match_cutoff  = threshold3
+  
+  print_line %>% print()
+  print("Running function: (pairwise_merge_links)") 
+  print_line %>% print()
+  
+  # section 1: set-up ----
+  datatable_x <- datatable_x %>% copy() %>% 
+    rename_columns(
+      datatable = ., 
+      current_names = c(by_column, unique_by_column_id_x), 
+      new_names = c("by_column", "unique_by_column_id_x")
+    )
+  
+  datatable_y <- datatable_y %>% copy() %>% 
+    rename_columns(
+      datatable = ., 
+      current_names = c(by_column, unique_by_column_id_y), 
+      new_names = c("by_column", "unique_by_column_id_y")
+    )
+  
+  # section 2: split by_column into pair-wise combinations ----
+  
+  split_x <- datatable_x %>% copy() %>%
+    .[, .(by_column, unique_by_column_id_x)] %>%
+    split_pattern_into_tplus1_cols_pairwise_combinations(
+      datatable = .,
+      id = "unique_by_column_id_x",
+      string = "by_column",
+      pattern = " ",
+      threshold_split = threshold_split
+    )
+  
+  split_y <- datatable_y %>% copy() %>%
+    .[, .(by_column, unique_by_column_id_y)] %>%
+    split_pattern_into_tplus1_cols_pairwise_combinations(
+      datatable = .,
+      id = "unique_by_column_id_y",
+      string = "by_column",
+      pattern = " ",
+      threshold_split = threshold_split
+    )
+  
+  # section 3: prliminaries for the pairwise merge ------
+  
+  # section 3.1: get the data-sets with the spit columns
+  datatable_x_pairs <- split_x$pairwise_split %>% copy()
+  datatable_y_pairs <- split_y$pairwise_split %>% copy()
+  
+  # Section 3.2): for the threshold used (in case of no obs that meet the threshold), get the column names using the same method as split_pattern_into_tplus1_cols_pairwise_combinations ----
+  by_columns_x <- create_unordered_nonrepeating_combinations_dt(max = split_x$threshold_split_used+1) %>% .[, column]
+  by_columns_y <- create_unordered_nonrepeating_combinations_dt(max = split_y$threshold_split_used+1) %>% .[, column]
+  
+  # section 4: perform the pairwise merge ------
+  indices_pairwise_merge <- merge_on_many_columns_and_produce_links(
+    datatable_x = datatable_x_pairs,
+    datatable_y = datatable_y_pairs,
+    id_x = "unique_by_column_id_x",
+    id_y = "unique_by_column_id_y",
+    col_x =  "by_column",
+    col_y = "by_column",
+    by_columns_x = by_columns_x,
+    by_columns_y = by_columns_y,
+    max_index_cutoff = threshold_match_cutoff
+  )
+  
+  print_line %>% print()
+  print("Successfully ran function: (pairwise_merge_links)")
+  print_line %>% print()
+  
+  # section 5: export -------
+  indices_pairwise_merge %>% 
+    rename_columns(
+      datatable = .,
+      c("unique_by_column_id_y", "unique_by_column_id_x"),
+      c("unique_by_column_id_y", "unique_by_column_id_x")
+    ) %>%
+    return()
+  
+}
 
 ################################################################################
 # Section 3: SIMULATION ########################################################
