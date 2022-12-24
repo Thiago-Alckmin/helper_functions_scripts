@@ -214,16 +214,15 @@ clean_numerical_suffix <- function(variables){ #clean_numerical_suffix
 }
 
 
-# order these first -----
-order_these_first <- function(vector, first){
+# order these first (USED TO BE order_these_first) -----
+reorder_columns <- function(vector, first){
   
   vector %>% 
     append(first, .) %>% 
     .[!duplicated(.)] %>% 
     return()
   
-}
-
+} 
 
 # remove suffix from variables ----
 remove_suffix_from_variables <- function(variables, suffixes){
@@ -968,7 +967,7 @@ standardize_name_column <- function(
   
 }
 
-# Section 3.1: clean names  -----
+# Section 3.1: clean names FASTER -----
 standardize_name_column_dt <- function(
     datatable, 
     column, 
