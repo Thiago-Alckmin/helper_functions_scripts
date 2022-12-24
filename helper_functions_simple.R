@@ -2119,6 +2119,74 @@ str_extract_digits_after_last_underscore <- function(x){ # get_digits_after_last
   
 }
 
+# str_replace for all double spaces ------
+str_remove_digits_odd_chars_and_double_spaces <- function(datatable, column){
+  
+  
+  odd_character <- c("€","%", "¥", "!", "@", "#")
+  digits <- c(0:9)
+  
+  remove_these <- odd_character %>% 
+    append(digits) 
+  
+  
+  keep_these <- names(datatable) %>% append(paste0(column, "2"))
+  
+  datatable <- datatable %>% copy() %>% 
+    rename_columns(
+      datatable = .,
+      current_names = c(column), 
+      new_names = c("column")
+    )  %>% .[, column2 := paste0(" ", column, " ")]
+  
+  
+  for(this in remove_these){
+    
+    paste0("Removing the following string: (", this,").") %>% print()
+    
+    nrows <- datatable %>% .[str_detect(column2, this)] %>% nrow()
+    
+    while(nrows>0){
+      datatable <- datatable %>% 
+        .[, column2 := str_remove_all(column2, pattern = this)] %>% 
+        .[, column2 := str_replace_all(column2, pattern = "  ", replacement = " ")] %>% 
+        .[, column2 := paste0(" ", column2, " ")]  
+      
+      nrows <- datatable %>% .[str_detect(column2, this)] %>% nrow()
+    }
+  }
+  
+  for(this in c("  ")){
+    
+    paste0("Removing the following string: (", this,").") %>% print()
+    
+    nrows <- datatable %>% .[str_detect(column2, this)] %>% nrow()
+    
+    while(nrows>0){
+      datatable <- datatable %>% 
+        
+        
+        .[, column2 := str_remove_all(column2, pattern = this)]
+      nrows <- datatable %>% .[str_detect(column2, this)] %>% nrow()
+    }
+  }
+  
+  
+  
+  
+  
+  datatable %>% copy() %>% 
+    rename_columns(
+      datatable = .,
+      current_names = c("column", "column2"), 
+      new_names = c(column, paste0(column, "2"))
+    ) %>% 
+    .[, ..keep_these] %>%  
+    return()
+  
+}
+
+
 ################################################################################
 # Section 4: environment and time  #############################################
 ################################################################################
