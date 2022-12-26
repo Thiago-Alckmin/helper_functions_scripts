@@ -789,13 +789,13 @@ split_pattern_into_tplus1_cols_pairwise_combinations <- function(
   
   datatable_names <- names(datatable)
   string_split_colnames <- paste0("s_",c(1:(threshold_split+1)))
-  
 
   datatable_split <- NULL
   attempt <- 1
   
-  while( is.null(datatable_split) && attempt <= 10 ) {
+  while( is.null(datatable_split) && attempt < 12 ) {
     attempt <- attempt + 1
+    if(attempt <= 9){
     try(
       datatable_split <- datatable %>% copy() %>% 
         .[n_pattern<=threshold_split] %>% 
@@ -806,6 +806,37 @@ split_pattern_into_tplus1_cols_pairwise_combinations <- function(
           sep = pattern,
           fill = "", fixed = T, remove = F)
     )
+    }
+    if(attempt == 10){
+      
+      string_split_colnames2 <- paste0("s_",c(1:(threshold_split)))
+    
+      try(
+        datatable_split <- datatable %>% copy() %>% 
+          .[n_pattern<=threshold_split] %>% 
+          dt_separate(
+            dt_ = .,
+            col = string, 
+            into = string_split_colnames2,
+            sep = pattern,
+            fill = "", fixed = T, remove = F)
+      )
+    }  
+    if(attempt == 11){
+      
+      string_split_colnames2 <- paste0("s_",c(1:(threshold_split+2)))
+      
+      try(
+        datatable_split <- datatable %>% copy() %>% 
+          .[n_pattern<=threshold_split] %>% 
+          dt_separate(
+            dt_ = .,
+            col = string, 
+            into = string_split_colnames2,
+            sep = pattern,
+            fill = "", fixed = T, remove = F)
+      )
+    } 
   } 
   
 
