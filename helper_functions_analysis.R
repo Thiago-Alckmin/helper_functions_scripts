@@ -790,14 +790,25 @@ split_pattern_into_tplus1_cols_pairwise_combinations <- function(
   datatable_names <- names(datatable)
   string_split_colnames <- paste0("s_",c(1:(threshold_split+1)))
   
-  datatable_split <- datatable %>% copy() %>% 
-    .[n_pattern<=threshold_split] %>% 
-    dt_separate(
-      dt_ = .,
-      col = string, 
-      into = string_split_colnames,
-      sep = pattern,
-      fill = "", fixed = T, remove = F)
+
+  datatable_split <- NULL
+  attempt <- 1
+  
+  while( is.null(datatable_split) && attempt <= 10 ) {
+    attempt <- attempt + 1
+    try(
+      datatable_split <- datatable %>% copy() %>% 
+        .[n_pattern<=threshold_split] %>% 
+        dt_separate(
+          dt_ = .,
+          col = string, 
+          into = string_split_colnames,
+          sep = pattern,
+          fill = "", fixed = T, remove = F)
+    )
+  } 
+  
+
   
   # section 4.1: create a datatable with all column combinations  ----  
   possible_columns <- create_unordered_nonrepeating_combinations_dt(max=threshold_split+1) %>% 
