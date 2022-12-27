@@ -1081,7 +1081,7 @@ pairwise_merge_links <- function(
       id = "unique_by_column_id_x",
       string = "by_column",
       pattern = " ",
-      threshold_split = threshold2
+      threshold_split = threshold_split
     )
   
   split_y <- datatable_y %>% copy() %>%
@@ -1091,7 +1091,7 @@ pairwise_merge_links <- function(
       id = "unique_by_column_id_y",
       string = "by_column",
       pattern = " ",
-      threshold_split = threshold2
+      threshold_split = threshold_split
     )
   
   # section 3: prliminaries for the pairwise merge ------
