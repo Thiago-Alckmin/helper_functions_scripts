@@ -2251,7 +2251,7 @@ list.file_info_dt <- function(wd){
   setwd(wd)
   # get files 
   files_dt <-  list.files() %>% 
-    data.table(files)
+    data.table(files=.)
   
   # for each file, get last modificaiton time
   for(file in files){
