@@ -2248,19 +2248,22 @@ x_second_sleep <- function(x, additional){
 
 list.file_info_dt <- function(wd){
   
-  
   setwd(wd)
   # get files 
-  files <-  list.files() 
+  files_dt <-  list.files() %>% 
+    data.table(files)
   
   # for each file, get last modificaiton time
   for(file in files){
     
-    files_dt[files==file, files_time := file.info(file)$ctime]  
+    files_dt[files==file, files_datetime := file.info(file)$ctime]  
     
   }
   
+  # include wd
   files_dt[, wd := wd]
+  files_dt[, files_date := substr(files_datetime, 1, 11)]
+  files_dt[, files_time := substr(files_datetime, 11, 19)]
   
   return(files_dt)
   
