@@ -2243,7 +2243,30 @@ x_second_sleep <- function(x, additional){
   
 }
 
-# Section 4.5: get all files in directory and associated information 
+# Section 4.5: get all files in directory and associated information ------
+
+
+list.file_info_dt <- function(wd){
+  
+  
+  setwd(wd)
+  # get files 
+  files <-  list.files() 
+  
+  # for each file, get last modificaiton time
+  for(file in files){
+    
+    files_dt[files==file, files_time := file.info(file)$ctime]  
+    
+  }
+  
+  files_dt[, wd := wd]
+  
+  return(files_dt)
+  
+}
+
+
 ################################################################################
 # Section 5: Internal operations ############################################### 
 ################################################################################
