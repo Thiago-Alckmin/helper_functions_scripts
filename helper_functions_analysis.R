@@ -696,7 +696,7 @@ split_pattern_into_tplus1_cols_pairwise_combinations <- function(
     stringB <- possible_columns[row] %>% .[, B] %>% paste0("s", .)
     stringAB <- possible_columns[row] %>% .[, column]
     
-    datatable_split_out2 <- datatable_split_out %>% copy() %>% 
+    datatable_split_out <- datatable_split_out %>% copy() %>% 
       rename_columns(
         datatable = .,
         current_names = c(stringA, stringB),
@@ -717,7 +717,7 @@ split_pattern_into_tplus1_cols_pairwise_combinations <- function(
   keep_these <- c(id, string, "n_pattern") %>% append(possible_columns[, unique(column)])
   
   # rename columns back
-  datatable_split <- datatable_split %>% copy() %>%
+  datatable_split_out <- datatable_split_out %>% copy() %>%
     rename_columns(
       datatable = .,
       current_names = c("id", "string"),
@@ -729,7 +729,7 @@ split_pattern_into_tplus1_cols_pairwise_combinations <- function(
   out$threshold_split_used <- threshold_split_out
   out$stats <- stats %>% copy()
   out$try_later <- datatable_try_later %>% copy()
-  out$pairwise_split <-  datatable_split %>% copy()
+  out$pairwise_split <-  datatable_split_out %>% copy()
   
   
   
