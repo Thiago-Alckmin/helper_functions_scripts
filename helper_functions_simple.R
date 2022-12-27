@@ -2243,6 +2243,7 @@ x_second_sleep <- function(x, additional){
   
 }
 
+# Section 4.5: get all files in directory and associated information 
 ################################################################################
 # Section 5: Internal operations ############################################### 
 ################################################################################
