@@ -521,7 +521,8 @@ reshape_unique_bycol_with_t_id_cols <- function(datatable, id, by_column, thresh
 
 
 # Section 2.2: split pattern into threshold+1 columns then compute the pairwise combination of these threshold+1 columns ----------
-split pattern into threshold+1 columns then compute the pairwise combination of these threshold+1 columns
+#split pattern into threshold+1 columns then compute the pairwise combination of these threshold+1 columns
+
 split_pattern_into_tplus1_cols_pairwise_combinations <- function(
     datatable, id,string, pattern, threshold_split){
   
