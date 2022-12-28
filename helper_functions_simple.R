@@ -41,7 +41,7 @@ na_as_zero <- function(x){
     return(0)
   }else{return(x)}
 }
-# create x 0s according to vector specification ----
+# Section 1.5: create x 0s according to vector specification ----
 n_zeroes <- function(vec){
   
   out <- as.character(vec)
@@ -81,6 +81,18 @@ n_zeroes <- function(vec){
 
 
 
+
+# Section 1.6: format commas ----
+format_with_commas <- function(x) {
+  # Convert the input to a character string
+  x <- as.character(x)
+  
+  # Use gsub to add a comma after every three digits, starting from the right
+  x <- gsub("(\\d+)(\\d{3})", "\\1,\\2", x)
+  
+  # Return the formatted string
+  return(x)
+}
 
 ################################################################################
 # Section 2: column names ######################################################
@@ -1592,12 +1604,14 @@ get_common_tites <- function(type = "educ_period") {
     "oth", 
     "unambiguous")
   
-  if (!(type %in% possible_titles)) {
+  if ((!(type %in% possible_titles))|type=="") {
     
     warning <- possible_titles %>%
       glue::glue_collapse(x = ., sep = ", ") %>%
       paste0("Possible types are: ", .)  
-    errorCondition(warning)
+    message_with_lines(warning)
+    out <- NULL
+    
   }
   
   #  definitions ---------
@@ -2254,12 +2268,13 @@ list.file_info_dt <- function(wd){
   
   # get files 
   files_dt <-  
-    data.table(files)
+    data.table(files=files)
   
   # for each file, get last modificaiton time
   for(file in files){
     
     files_dt[files==file, files_datetime := file.info(file)$ctime]  
+    files_dt[files==file, files_size := file.info(file)$size]  
     
   }
   
