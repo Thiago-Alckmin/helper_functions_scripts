@@ -88,12 +88,25 @@ format_with_commas <- function(x) {
   x <- as.character(x)
   
   # Use gsub to add a comma after every three digits, starting from the right
-  x <- gsub("(\\d+)(\\d{3})", "\\1,\\2", x)
+  x <- gsub("(\\d)(?=(\\d{3})+$)", "\\1,", x, perl = TRUE)
   
   # Return the formatted string
   return(x)
 }
 
+# multply things in line when piping  
+inline_sum <- function(a, b){
+  return(a+b)
+}
+inline_sub <- function(a, b){
+  return(a-b)
+}
+inline_mult <- function(a, b){
+  return(a*b)
+}
+inline_div <- function(num, denom){
+  return(num/denom)
+}
 ################################################################################
 # Section 2: column names ######################################################
 ################################################################################
@@ -2200,6 +2213,45 @@ str_remove_digits_odd_chars_and_double_spaces <- function(datatable, column){
   
 }
 
+# str_remove everything before a word appears -----
+str_remove_all_before_and_including_pattern <- function(x, pattern) {
+  # Extract the part of the string after the specified word
+  result <- str_extract(x, paste0(".*", pattern, "(.*)"))
+  
+  # If the word was not found, return an empty string
+  if (is.na(result)) {
+    return("")
+  } else {
+    return(result)
+  }
+}
+
+# str_remove_all_before_not_including_pattern ------
+
+str_remove_all_before_not_including_pattern <- function(x, pattern) {
+  # Extract the part of the string after the specified pattern
+  result <- stri_extract(x, paste0(pattern, "(.*)"), regex=T)
+  
+  # If the pattern was not found, return an empty string
+  if (is.na(result)) {
+    return("")
+  } else {
+    return(result)
+  }
+}
+
+# str_remove_all_after_not_including_pattern ------
+str_remove_all_after_not_including_pattern <- function(x, pattern) {
+  # Extract the part of the string before the specified pattern
+  result <- stri_extract(x, "^(.*?)" + pattern, regex=T)
+  
+  # If the pattern was not found, return the original string
+  if (is.na(result)) {
+    return(x)
+  } else {
+    return(result)
+  }
+}
 
 ################################################################################
 # Section 4: environment and time  #############################################
@@ -2385,5 +2437,35 @@ return_in_vector_format <- function(x){
   
   return(out)
   
+  
+}
+
+################################################################################
+# Section 7: SAVING ------
+################################################################################
+
+# save a datatable as a simple latex table without table environment ----
+save_simple_latex_table_fragment <- function(datatable, filename){
+  
+  datatable   %>%
+    xtable(., include.rownames=FALSE, row.names=F) %>% 
+    print(., type="latex")   %>% 
+    write(., file = filename)
+  
+  # quickly clean up tex file
+  read_lines(filename) %>% 
+    stri_replace_all_fixed(., pattern = "\\begin{table}", "%\\begin{table}") %>% 
+    stri_replace_all_fixed(., pattern = "\\end{table}", "%\\end{table}") %>% 
+    stri_replace_all_fixed(., pattern = "\\centering", "%\\centering") %>% 
+    
+    # drop row names (which are numbers)
+    stri_replace_first_regex(., pattern = "^(\\s*?\\d)", "") %>%  
+    # drop first column (which are numbers)
+    stri_replace_first_regex(., pattern = "^(\\s*?&)", "") %>% 
+    # reduce number of columns in tabular heading
+    stri_replace_first_fixed(., pattern = "begin{tabular}{r", "begin{tabular}{") %>%   
+    write_lines(., path   = filename)
+  
+  paste0("Latex table saved under: ", filename) %>%  message_with_lines()
   
 }
