@@ -107,6 +107,29 @@ inline_mult <- function(a, b){
 inline_div <- function(num, denom){
   return(num/denom)
 }
+
+
+
+
+
+standard_normalize <- function(vector){
+  
+  vector_is_homogenous <- (length(vector)<=1)|(length(unique(vector))==1)
+  
+  if(vector_is_homogenous){
+    out <- c(0)
+  }else{
+    
+    out <- (vector-mean(vector, na.rm=T))/(sd(vector, na.rm=T))
+  }
+  
+  return(out)
+  
+}
+
+
+
+
 ################################################################################
 # Section 2: column names ######################################################
 ################################################################################
