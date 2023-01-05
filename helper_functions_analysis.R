@@ -1209,7 +1209,7 @@ create_AB_combinations_dt <- function(max){
 
 
 ################################################################################
-# Section 4: quick analysis  
+# Section 4: quick analysis  --------------
 ################################################################################
 
 # function to sum data-table columns ----
@@ -1415,6 +1415,48 @@ sum_by_variable_suffix <- function(datatable, suffixes, index,prefix) {
 }
 
 
+
+# get most recent value by a group ----------
+get_most_recent_value_by_group <- function(datatable, time_column, column, by_columns, empty_string_rm=T){
+  
+  # datatable <- copy(main_reduced_to_target)
+  # time_column <- "year"
+  # column <- "affiliate_party"
+  
+  # by_columns <- c("id_person")
+  
+  
+  
+  if(empty_string_rm){
+    datatable %>% copy() %>% 
+      rename_columns(
+        current_names = c(column, time_column),
+        new_names = c("column", "time_column"))   %>%
+      # get max value for when value is NOT missing
+      .[!(is.na(column)|column==""), max_time_not_missing := max(time_column, na.rm=T), by_columns] %>% 
+      
+      .[time_column ==  max_time_not_missing, column_most_recent := column, by_columns ] %>% 
+      rename_columns(
+        current_names = c("column", "time_column", "column_most_recent", "max_time_not_missing"),
+        new_names = c(column, time_column,  paste0(column, "_most_recent"), paste0("max_", time_column, "_not_missing"))) %>% 
+      return()
+  }else{
+    datatable %>% copy() %>% 
+      rename_columns(
+        current_names = c(column, time_column),
+        new_names = c("column", "time_column"))   %>%
+      # get max value for when value is NOT missing
+      .[!(is.na(column)), max_time_not_missing := max(time_column, na.rm=T), by_columns] %>% 
+      .[time_column ==  max_time_not_missing, column_most_recent := column, by_columns ] %>% 
+      rename_columns(
+        current_names = c("column", "time_column", "column_most_recent", "max_time_not_missing"),
+        new_names = c(column, time_column,  paste0(column, "_most_recent"), paste0("max_", time_column, "_not_missing"))) %>% 
+      return()
+    
+  }
+  
+  
+}
 ################################################################################
 # Section 5: Regression analysis 
 ################################################################################
