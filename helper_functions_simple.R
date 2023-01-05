@@ -2419,6 +2419,15 @@ copy_column <- function(datatable, column_name, copy_column_name) {
   
 }
 
+shuffle_datatable <-  function(datatable){
+  
+  datatable %>% 
+    .[, indexjklmadsfasfasdghfgrtw := .I] %>% 
+    .[sample(indexjklmadsfasfasdghfgrtw, .N, replace = F)] %>%
+    .[, indexjklmadsfasfasdghfgrtw := NULL] %>% 
+    return()
+}
+
 ################################################################################
 # Section 6: print things  ###########################
 ################################################################################
