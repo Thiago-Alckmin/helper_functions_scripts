@@ -84,8 +84,16 @@ n_zeroes <- function(vec){
 
 # Section 1.6: format commas ----
 format_with_commas <- function(x) {
+  
+  if(is.numeric(x)){
+    if(does_numeric_have_decimal(x)){
+      message_with_lines("Rounding the numeric value for formatting purposes.")
+    }
+      
+  }
+  
   # Convert the input to a character string
-  x <- as.character(x)
+  x <- as.character(as.integer(round(x, digits = 0)))
   
   # Use gsub to add a comma after every three digits, starting from the right
   x <- gsub("(\\d)(?=(\\d{3})+$)", "\\1,", x, perl = TRUE)
@@ -108,10 +116,22 @@ inline_div <- function(num, denom){
   return(num/denom)
 }
 
+#  does the numeric value have a decimal? -----
+does_numeric_have_decimal <- function(x) {
+  if(is.numeric(x)) {
+    if(any(x != round(x))) {
+      return(TRUE)
+    } else {
+      return(FALSE)
+    }
+  } else {
+    return(FALSE)
+  }
+}
 
 
 
-
+# function to standardize a vector into the std normal distribution  -----
 standard_normalize <- function(vector){
   
   vector_is_homogenous <- (length(vector)<=1)|(length(unique(vector))==1)
