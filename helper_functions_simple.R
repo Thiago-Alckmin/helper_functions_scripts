@@ -118,8 +118,12 @@ inline_div <- function(num, denom){
 
 #  does the numeric value have a decimal? -----
 does_numeric_have_decimal <- function(x) {
+  
   if(is.numeric(x)) {
-    if(any(x != round(x))) {
+
+    test  <- (x != round(x)) %>% .[!is.na(.)]
+    
+    if(any(test)) {
       return(TRUE)
     } else {
       return(FALSE)
@@ -128,8 +132,6 @@ does_numeric_have_decimal <- function(x) {
     return(FALSE)
   }
 }
-
-
 
 # function to standardize a vector into the std normal distribution  -----
 standard_normalize <- function(vector){
@@ -146,9 +148,6 @@ standard_normalize <- function(vector){
   return(out)
   
 }
-
-
-
 
 ################################################################################
 # Section 2: column names ######################################################
