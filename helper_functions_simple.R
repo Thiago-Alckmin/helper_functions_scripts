@@ -1013,7 +1013,7 @@ standardize_name_column <- function(
     .[str_detect(column2, "\\\177"), column2 := stringr::str_remove(column2, pattern = "\\\177")] %>%
     .[str_detect(column2, "\u009a"), column2 := stringr::str_replace(column2, pattern = "\u009a", replacement = "S")]  %>%
     .[str_detect(column2,  "\\^"), column2 := stringr::str_remove(column2, pattern = "\\^")] %>%
-    .[str_detect(column2, "\\´"), column2 := stringr::str_remove(column2, pattern = "\\´")] %>%
+  #  .[str_detect(column2, "\\´"), column2 := stringr::str_remove(column2, pattern = "\\´")] %>% # undelete later
     .[str_detect(column2, "\\ʿ"), column2 := stringr::str_remove(column2, pattern = "\\ʿ")] %>%
     .[str_detect(column2, "\\`"), column2 := stringr::str_remove(column2, pattern = "\\`")] %>%
     .[str_detect(column2, "\\+"), column2 := stringr::str_remove(column2, pattern = "\\+")] %>%
