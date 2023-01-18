@@ -1005,23 +1005,22 @@ standardize_name_column <- function(
     rename_columns(current_names = c("column_original"),
                    new_names = c("column"))  %>%
     # remove some additional things -----
-  # .[str_detect(column2, "\\u008e"), column2 := stringr::str_replace(column2, pattern = "\\u008e", replacement =  "Z")] %>%
-  #   .[str_detect(column2, "\\u0092"), column2 := stringr::str_remove(column2, pattern = "\\u0092")] %>%
-  #   .[str_detect(column2, "\\u0093"), column2 := stringr::str_remove(column2, pattern = "\\u0093")] %>%
-  #   .[str_detect(column2, "\\u0094"), column2 := stringr::str_remove(column2, pattern = "\\u0094")] %>%
-  #   .[str_detect(column2, "\\\177"), column2 := stringr::str_remove(column2, pattern = "\\\177")] %>%
-  #   .[str_detect(column2, "\\\177"), column2 := stringr::str_remove(column2, pattern = "\\\177")] %>%
-  #   .[str_detect(column2, "\u009a"), column2 := stringr::str_replace(column2, pattern = "\u009a", replacement = "S")]  %>%
-  #   .[str_detect(column2,  "\\^"), column2 := stringr::str_remove(column2, pattern = "\\^")] %>%
-  # #  .[str_detect(column2, "\\´"), column2 := stringr::str_remove(column2, pattern = "\\´")] %>% # undelete later
-  #   .[str_detect(column2, "\\ʿ"), column2 := stringr::str_remove(column2, pattern = "\\ʿ")] %>%
-  #   .[str_detect(column2, "\\`"), column2 := stringr::str_remove(column2, pattern = "\\`")] %>%
-  #   .[str_detect(column2, "\\+"), column2 := stringr::str_remove(column2, pattern = "\\+")] %>%
-  #   .[str_detect(column2, "\\>"), column2 := stringr::str_remove(column2, pattern = "\\>")] %>%
-  #   .[str_detect(column2, "\\<"), column2 := stringr::str_remove(column2, pattern = "\\<")] %>%
-  #   .[str_detect(column2, "\\^"), column2 := stringr::str_remove(column2, pattern = "\\^")] %>%
-  #   .[str_detect(column2, "³"), column2 := stringr::str_remove(column2, pattern = "³")] %>%
-  #   .[str_detect(column2, "/"), column2 := stringr::str_remove(column2, pattern = "/")] %>%
+  .[str_detect(column2, "\\u008e"), column2 := stringr::str_replace(column2, pattern = "\\u008e", replacement =  "Z")] %>%
+    .[str_detect(column2, "\\u0092"), column2 := stringr::str_remove(column2, pattern = "\\u0092")] %>%
+    .[str_detect(column2, "\\u0093"), column2 := stringr::str_remove(column2, pattern = "\\u0093")] %>%
+    .[str_detect(column2, "\\u0094"), column2 := stringr::str_remove(column2, pattern = "\\u0094")] %>%
+    .[str_detect(column2, "\\\177"), column2 := stringr::str_remove(column2, pattern = "\\\177")] %>%
+    .[str_detect(column2, "\\\177"), column2 := stringr::str_remove(column2, pattern = "\\\177")] %>%
+    .[str_detect(column2, "\u009a"), column2 := stringr::str_replace(column2, pattern = "\u009a", replacement = "S")]  %>%
+    .[str_detect(column2,  "\\^"), column2 := stringr::str_remove(column2, pattern = "\\^")] %>%
+   .[str_detect(column2, "\\´"), column2 := stringr::str_remove(column2, pattern = "\\´")] %>%     .[str_detect(column2, "\\ʿ"), column2 := stringr::str_remove(column2, pattern = "\\ʿ")] %>%
+    .[str_detect(column2, "\\`"), column2 := stringr::str_remove(column2, pattern = "\\`")] %>%
+    .[str_detect(column2, "\\+"), column2 := stringr::str_remove(column2, pattern = "\\+")] %>%
+    .[str_detect(column2, "\\>"), column2 := stringr::str_remove(column2, pattern = "\\>")] %>%
+    .[str_detect(column2, "\\<"), column2 := stringr::str_remove(column2, pattern = "\\<")] %>%
+    .[str_detect(column2, "\\^"), column2 := stringr::str_remove(column2, pattern = "\\^")] %>%
+    .[str_detect(column2, "³"), column2 := stringr::str_remove(column2, pattern = "³")] %>%
+    .[str_detect(column2, "/"), column2 := stringr::str_remove(column2, pattern = "/")] %>%
     .[, column2 := str_trim_ws_iterate(string = column2, whitespace = " ")] %>% 
     # rename finalized columns  -----
   rename_columns(datatable = ., 
