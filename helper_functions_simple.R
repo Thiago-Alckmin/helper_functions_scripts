@@ -17,6 +17,22 @@ save_global_env <- function(directory="/home/tresende/Global_Political_Connectio
   save.image(file=global_env_save)}
 
 ################################################################################
+# VARIABLE MANIPULATIONS 
+################################################################################
+
+# Compute number of breaks between the max and min of a variables ----
+create_breaks <- function(x) {
+  max_x <- max(x)
+  min_x <- min(x)
+  range_x <- max_x - min_x
+  upper_bound <- max_x + 0.1 * range_x
+  lower_bound <- min_x - 0.1 * range_x
+  breaks <- seq(floor(lower_bound), ceiling(upper_bound), length.out = 6)
+  return(breaks)
+}
+
+
+################################################################################
 # Section 1: mathematical helper functions #####################################
 ################################################################################
 
