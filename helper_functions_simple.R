@@ -17,7 +17,7 @@ save_global_env <- function(directory="/home/tresende/Global_Political_Connectio
   save.image(file=global_env_save)}
 
 ################################################################################
-# VARIABLE MANIPULATIONS 
+# VARIABLE MANIPULATIONS --------
 ################################################################################
 
 # Compute number of breaks between the max and min of a variables ----
@@ -29,6 +29,46 @@ create_breaks <- function(x) {
   lower_bound <- min_x - 0.1 * range_x
   breaks <- seq(floor(lower_bound), ceiling(upper_bound), length.out = 6)
   return(breaks)
+}
+
+create_breaks_ranges <- function(x, units = 10) {
+
+  # x <-c(1, 2, 5, 20, 190, 404)*(-1)
+  
+  
+    max_x <- max(max(x), 0)
+    min_x <- min(min(x), 0)
+
+    diff <- max_x - min_x
+    
+    if(min_x==0){
+      max_x <- floor((max_x + diff/10)/units)*units
+    }
+    if(max_x==0){
+      min_x <- ceiling((min_x - diff/10)/units)*units
+    }
+    
+  range_x <- max_x - min_x
+  upper_bound <- max_x + 0.01 * range_x
+  lower_bound <- min_x - 0.01 * range_x
+  breaks <- seq(floor(lower_bound), ceiling(upper_bound), length.out = 6)
+  return(breaks)
+}
+
+
+
+################################################################################
+# file. and dir. funcitons ----
+################################################################################
+
+copy_files <- function(src_dir, dest_dir) {
+  # Get a list of all files in the source directory
+  files <- list.files(src_dir, full.names = TRUE)
+  
+  # Iterate through each file and copy it to the destination directory
+  for (file in files) {
+    file.copy(file, dest_dir)
+  }
 }
 
 
