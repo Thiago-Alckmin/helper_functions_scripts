@@ -79,7 +79,10 @@ copy_files <- function(src_dir, dest_dir) {
 
 standardize_folder_and_file_names <- function(parent_folder){
   
-  parent_folder <- "C:/Users/alckm/Dropbox/pdf_conversion/data/input/unzipped/20230118 - Copy/"
+  #parent_folder <- "C:/Users/alckm/Dropbox/pdf_conversion/data/input/unzipped/20230118 - Copy/"
+  
+  paste0("Standardizing folder and file names for documents under: ", parent_folder) %>% 
+  message_with_lines()
   
   setwd(parent_folder)
   
@@ -91,11 +94,15 @@ standardize_folder_and_file_names <- function(parent_folder){
     str_replace_all(., " ", "_")
   
   for(i in 1:length(files)){
+    
+    paste0("Renaming ", files[i] , " to ", new_names[i]) %>% 
+      message_with_lines()
+    
     file.rename(from = files[i], to = new_names[i])
+    Sys.sleep(0.1)
   }
   
 }
-
 
 
 ################################################################################
