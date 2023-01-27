@@ -62,14 +62,40 @@ create_breaks_ranges <- function(x, units = 10) {
 ################################################################################
 
 copy_files <- function(src_dir, dest_dir) {
-  # Get a list of all files in the source directory
-  files <- list.files(src_dir, full.names = TRUE)
   
+  # Get a list of all files in the source directory
+  files <- list.files(src_dir, full.names = TRUE
+                      , recursive = T
+                      )
+
   # Iterate through each file and copy it to the destination directory
   for (file in files) {
     file.copy(file, dest_dir)
   }
+  
+
 }
+
+
+standardize_folder_and_file_names <- function(parent_folder){
+  
+  parent_folder <- "C:/Users/alckm/Dropbox/pdf_conversion/data/input/unzipped/20230118 - Copy/"
+  
+  setwd(parent_folder)
+  
+  files <- list.files(path = parent_folder, include.dirs = T)
+  
+  new_names <- files %>% stri_trans_tolower() %>% 
+    stri_trans_general(., "Any-Latin") %>% 
+    stri_trans_general(., "Latin-ASCII")  %>% 
+    str_replace_all(., " ", "_")
+  
+  for(i in 1:length(files)){
+    file.rename(from = files[i], to = new_names[i])
+  }
+  
+}
+
 
 
 ################################################################################
