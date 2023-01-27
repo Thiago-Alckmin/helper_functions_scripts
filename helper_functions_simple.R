@@ -104,6 +104,25 @@ standardize_folder_and_file_names <- function(parent_folder){
   
 }
 
+standardize_folder_and_file_names_one_level_deeper <- function(parent_folder){
+  
+  setwd(parent_folder)
+  
+  for(FOLDER in parent_folder){
+    
+    FOLDER_FULL <- paste0(parent_folder, "/", FOLDER)
+    
+    if(dir.exists(FOLDER_FULL)){
+      
+      
+      standardize_folder_and_file_names(FOLDER_FULL)
+      
+    }
+    
+  }
+  
+  
+}
 
 ################################################################################
 # Section 1: mathematical helper functions #####################################
