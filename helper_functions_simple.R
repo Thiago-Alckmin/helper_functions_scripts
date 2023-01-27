@@ -91,7 +91,8 @@ standardize_folder_and_file_names <- function(parent_folder){
   new_names <- files %>% stri_trans_tolower() %>% 
     stri_trans_general(., "Any-Latin") %>% 
     stri_trans_general(., "Latin-ASCII")  %>% 
-    str_replace_all(., " ", "_")
+    str_replace_all(., " ", "_") %>% 
+    str_replace_all(., "-", "_") 
   
   for(i in 1:length(files)){
     
@@ -104,21 +105,22 @@ standardize_folder_and_file_names <- function(parent_folder){
   
 }
 
+#parent_folder <- "C:/Users/alckm/Dropbox/pdf_conversion/data/input/unzipped/20230118_-_copy"
+
+
 standardize_folder_and_file_names_one_level_deeper <- function(parent_folder){
   
-  setwd(parent_folder)
+  standardize_folder_and_file_names(parent_folder)
   
-  for(FOLDER in parent_folder){
+  folders <- list.dirs(parent_folder, full.names = T)
+  
+  for(FOLDER in folders){
     
-    FOLDER_FULL <- paste0(parent_folder, "/", FOLDER)
+    paste0("Standardizing files in : ", FOLDER)
     
-    if(dir.exists(FOLDER_FULL)){
+    standardize_folder_and_file_names(FOLDER)
       
-      
-      standardize_folder_and_file_names(FOLDER_FULL)
-      
-    }
-    
+
   }
   
   
