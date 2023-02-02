@@ -107,7 +107,6 @@ standardize_folder_and_file_names <- function(parent_folder){
 
 #parent_folder <- "C:/Users/alckm/Dropbox/pdf_conversion/data/input/unzipped/20230118_-_copy"
 
-
 standardize_folder_and_file_names_one_level_deeper <- function(parent_folder){
   
   standardize_folder_and_file_names(parent_folder)
@@ -124,6 +123,51 @@ standardize_folder_and_file_names_one_level_deeper <- function(parent_folder){
   }
   
   
+}
+
+# cumulative max for vector ------
+cummax <- function(x) {
+  
+  
+  max_so_far <- x[1]
+  cummax_vec <- numeric(length(x))
+  for (i in 1:length(x)) {
+    max_so_far <- max(max_so_far, x[i])
+    cummax_vec[i] <- max_so_far
+  }
+  return(cummax_vec)
+}
+
+# second cumulative max for vector ------
+second_cummax <- function(x){
+  
+  second_cummax_vec <- numeric(length(x))
+  for (i in 2:length(x)) {
+    
+    vec_so_far <- x[1:i]
+    max_so_far <- max(vec_so_far)
+    index_for_max <- which(vec_so_far==max_so_far)[1]
+    vec_so_far[index_for_max] <- 0
+    
+    second_max <- max(vec_so_far)
+    
+    second_cummax_vec[i] <- second_max
+    
+  }
+  
+  return(second_cummax_vec)
+  
+}
+
+# running sum of top two numbers ------
+cumsum_top2 <- function(x) {
+  # x <- c(1, 5, 1, 3, 6, 3, 1, 8, 9, 2)
+  
+  cx <- cummax(x)
+  cx2 <- second_cummax(x)
+  
+  running_total <- cx + cx2
+  return(running_total)
 }
 
 ################################################################################
