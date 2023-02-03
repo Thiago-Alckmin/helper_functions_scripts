@@ -139,12 +139,28 @@ month_name_to_number <- function(month_name) {
     generate_internal_order_column(. )
   
   month_vector_dt %>% 
-    merge(x = ., y= month_number_dt, by = "month_lower", all=T) %>% 
+    merge(x = ., y= month_number_dt, by = "month_lower", all.x=T, all.y=F) %>% 
     .[order(INTERNAL_ORDER_COLUMN)] %>% 
     .[, number] %>% 
     return()
   
 }
+
+# clean date columns ------
+clean_date_cols <- function(year, month, date){
+  
+  # year <- tmp$heat_date_year
+  # month <- tmp$heat_date_month
+  # day <- tmp$heat_date_day
+  
+  data.table(year = year, month = as.character(month), day = as.character(day)) %>% 
+    .[(nchar(month)==1), month := paste0(0, month) ] %>% 
+    .[(nchar(day)==1), day := paste0(0, day) ] %>% 
+    .[, paste0(year, month, day)] %>% 
+    return()
+  
+}
+
 
 ################################################################################
 # file. and dir. funcitons ----
