@@ -55,6 +55,49 @@ create_breaks_ranges <- function(x, units = 10) {
   return(breaks)
 }
 
+# create breaks for ggplot (or any other reason ) ------
+gg_create_breaks <- function(min, max, breaks, type = "regular"){
+  
+  # min <- 0
+  # max <- 400
+  # breaks <- 12
+  
+  if(type=="regular"){
+    by <- ceiling((max-min)/breaks)
+    out <- seq(min, max+by, by)
+  }
+  
+  if(type=="log-regular"){
+    
+    log_max <- log(max)
+    log_min <- ifelse(is.numeric(log(min)),
+                      ifelse(is.numeric(log(min + 0.001)), 0, log(min + 0.00001)) ,
+                      log(min))
+    
+    
+    by <- ceiling((log_max-log_min)/breaks)
+    
+    out <- exp(seq(log_min, log_max+by, by)) 
+  }
+  
+  if(type=="log-log"){
+    
+    log_max <- log(max)
+    log_min <- ifelse(is.numeric(log(min)),
+                      ifelse(is.numeric(log(min + 0.001)), 0, log(min + 0.00001)) ,
+                      log(min))
+    
+    
+    by <- ceiling((log_max-log_min)/breaks)
+    
+    out <- seq(log_min, log_max+by, by)
+  }
+  
+  out %>% 
+    ceiling() %>% 
+    return()
+  
+}
 
 
 ################################################################################
