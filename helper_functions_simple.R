@@ -147,7 +147,7 @@ month_name_to_number <- function(month_name) {
 }
 
 # clean date columns ------
-clean_date_cols <- function(year, month, date){
+clean_date_cols <- function(year, month, day){
   
   # year <- tmp$heat_date_year
   # month <- tmp$heat_date_month
@@ -156,7 +156,7 @@ clean_date_cols <- function(year, month, date){
   data.table(year = year, month = as.character(month), day = as.character(day)) %>% 
     .[(nchar(month)==1), month := paste0(0, month) ] %>% 
     .[(nchar(day)==1), day := paste0(0, day) ] %>% 
-    .[, paste0(year, month, day)] %>% 
+    .[, as.numeric(paste0(year, month, day))] %>% 
     return()
   
 }
