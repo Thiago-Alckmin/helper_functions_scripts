@@ -108,6 +108,43 @@ gg_create_breaks <- function(min, max, breaks, type = "regular"){
   
 }
 
+# month to date -----
+month_name_to_number <- function(month_name) {
+  
+  #month_name <- xx
+  
+  month_number <- c("January" = 1,
+                    "February"= 2,
+                    "March"= 3,
+                    "April"= 4,
+                    "May"= 5,
+                    "June"= 6,
+                    "July"= 7,
+                    "August"= 8,
+                    "September"= 9,
+                    "October"= 10,
+                    "November"= 11,
+                    "December"= 12)
+  
+  names(month_number) <- names(month_number) %>% str_to_lower()
+  
+  month_number_dt <- month_number %>% 
+    as.data.table(keep.rownames = T) %>% 
+    rename_columns(current_names = c("rn", "."), c("month_lower", "number"))
+  
+  month_vector_dt <- month_name %>%
+    as.data.table(keep.rownames = F) %>% 
+    rename_columns(current_names = c("."), c("month")) %>% 
+    .[, month_lower :=     str_to_lower(month)] %>% 
+    generate_internal_order_column(. )
+  
+  month_vector_dt %>% 
+    merge(x = ., y= month_number_dt, by = "month_lower", all=T) %>% 
+    .[order(INTERNAL_ORDER_COLUMN)] %>% 
+    .[, number] %>% 
+    return()
+  
+}
 
 ################################################################################
 # file. and dir. funcitons ----
