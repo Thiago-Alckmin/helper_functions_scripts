@@ -64,7 +64,7 @@ gg_create_breaks <- function(min, max, breaks, type = "regular"){
   
   if(type=="regular"){
     by <- ceiling((max-min)/breaks)
-    out <- seq(min, max+by, by)
+    out <- ceiling(seq(min, max+by, by))
   }
   
   if(type=="log-regular"){
@@ -77,7 +77,7 @@ gg_create_breaks <- function(min, max, breaks, type = "regular"){
     
     by <- ceiling((log_max-log_min)/breaks)
     
-    out <- exp(seq(log_min, log_max+by, by)) 
+    out <- ceiling(exp(seq(log_min, log_max+by, by))) 
   }
   
   if(type=="log-log"){
@@ -93,8 +93,17 @@ gg_create_breaks <- function(min, max, breaks, type = "regular"){
     out <- seq(log_min, log_max+by, by)
   }
   
+  if(type=="10-regular"){
+    
+    max10 <- max*10
+    min10 <- min*10
+    
+    by <- ceiling((max10-min10)/breaks)
+    
+    out <- seq(min10, max10+by, by) / 10 
+  }
+  
   out %>% 
-    ceiling() %>% 
     return()
   
 }
