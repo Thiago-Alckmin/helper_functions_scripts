@@ -1075,8 +1075,8 @@ standardize_name_column_dt <- function(
     change_order_because_of_comma){
   
   # DELETE LATER
-  # datatable <- str_create_name_column()
-  # column <- "name"
+  # datatable <- copy(cia_source_1920) 
+  # column <- "politician1"
   # change_order_because_of_comma <- T
   # drop_common_titles_when_one_comma <- T
   # drop_common_titles_when_more_than_one_comma <- T
@@ -1129,21 +1129,21 @@ standardize_name_column_dt <- function(
       # 6.3: for rows with more than one comma ----
       contain_commas_char2 %<>%
         # drop titles 
-        str_remove_all_common_titles_dt(
+        str_remove_all_common_titles_dt2(
           datatable = ., column = "column2",
           prefixes = c(" ", " ", ","),
           suffixes = c(" ", ",", " "), 
           endswith = T, 
           startswith =T
         ) %>% 
-        str_remove_all_common_titles_dt(
+        str_remove_all_common_titles_dt2(
           datatable = ., column = "column2",
           prefixes = c(""),
           suffixes = c(""), 
           endswith = F, 
           startswith =F, specific = get_common_tites(type="unambiguous")
         ) %>% 
-        str_remove_all_common_titles_dt(
+        str_remove_all_common_titles_dt2(
           datatable = ., column = "column2",
           prefixes = c(" "),
           suffixes = c(" "), 
@@ -1191,21 +1191,21 @@ standardize_name_column_dt <- function(
       # 6.3: for rows with more than one comma ----
       contain_commas_char1 %<>%
         # drop titles 
-        str_remove_all_common_titles_dt(
+        str_remove_all_common_titles_dt2(
           datatable = ., column = "column2",
           prefixes = c(" ", " ", ","),
           suffixes = c(" ", ",", " "), 
           endswith = T, 
           startswith =T
         ) %>% 
-        str_remove_all_common_titles_dt(
+        str_remove_all_common_titles_dt2(
           datatable = ., column = "column2",
           prefixes = c(""),
           suffixes = c(""), 
           endswith = F, 
           startswith =F, specific = get_common_tites(type="unambiguous")
         ) %>% 
-        str_remove_all_common_titles_dt(
+        str_remove_all_common_titles_dt2(
           datatable = ., column = "column2",
           prefixes = c(" "),
           suffixes = c(" "), 
@@ -1949,6 +1949,158 @@ str_remove_all_common_titles_dt <- function(datatable,
   } else{
     common_titles <- specific
   }
+  
+  # unconstrained
+  for (i in 1:length(prefixes)) {
+    
+    prefix <- prefixes[i]
+    suffix <- suffixes[i]
+    
+    for (title in common_titles) {
+      title_to_search <- paste0(prefix, title, suffix)
+      title_to_delete <- title
+      
+      paste0(
+        "Searching for (",
+        title_to_search,
+        "). Removing common title in parenthesis: (",
+        title_to_delete,
+        "). This excludes the specified prefix & suffix."
+      ) %>%
+        message_with_lines()
+      
+      dt <- dt[str_detect(string = col, pattern = title_to_search),
+               col := str_remove_all(string = col, pattern = title_to_delete)]
+      
+    }
+  }
+  
+  # constrained to start of string
+  if (startswith == TRUE) {
+    unique_suffixes <- unique(suffixes)
+    
+    for (i in 1:length(unique_suffixes)) {
+      suffix <- unique_suffixes[i]
+      
+      
+      for (title in common_titles) {
+        title_to_search_startswith <- paste0(title, suffix)
+        title_to_delete <- title
+        
+        paste0(
+          "Searching for string that starts with (",
+          title_to_search_startswith,
+          "). Removing common title in parenthesis: (",
+          title_to_delete,
+          "). This excludes the specified prefix & suffix."
+        ) %>%
+          message_with_lines()
+        
+        dt <-
+          dt[startsWith(x = col, prefix =  title_to_search_startswith),
+             col := str_remove_all(string = col, pattern = title_to_delete)]
+      }
+    }
+  }
+  
+  # constrained to end of string
+  if (endswith == TRUE) {
+    unique_prefixes <- unique(prefixes)
+    
+    for (i in 1:length(unique_prefixes)) {
+      prefix <- unique_prefixes[i]
+      
+      for (title in common_titles) {
+        title_to_search_endswith <- paste0(prefix, title)
+        title_to_delete <- title
+        
+        paste0(
+          "Searching for string that ends with (",
+          title_to_search_endswith,
+          "). Removing common title in parenthesis: (",
+          title_to_delete,
+          "). This excludes the specified prefix & suffix."
+        ) %>%
+          message_with_lines()
+        
+        
+        dt <- dt[endsWith(x = col, suffix = title_to_search_endswith),
+                 col := str_remove_all(string = col, pattern = title_to_delete)]
+      }
+    }
+  }
+  
+  # clean up internal order column 
+  internal_order_n <- names(dt) %>% 
+    .[startsWith(., "INTERNAL_ORDER_COLUMN")] %>% 
+    length()
+  
+  if(internal_order_n==2){
+    
+    internal_order_original <- names(dt) %>% 
+      .[startsWith(., "INTERNAL_ORDER_COLUMN_OLD")]
+    
+  }
+  
+  dt %>%
+    # remove excess commas (fruit of deletions)
+    .[str_detect(col, ", ,"), col := str_replace_all(col, pattern = ", ,", replacement = ",")] %>%
+    .[str_detect(col, ",,"), col := str_replace_all(col, pattern = ",,", replacement = ",")] %>%
+    # reorder
+    .[order(INTERNAL_ORDER_COLUMN)] %>%
+    .[, INTERNAL_ORDER_COLUMN := NULL] %>%
+    # rename 
+    rename_columns(current_names = c("col", internal_order_original),
+                   new_names = c(column, "INTERNAL_ORDER_COLUMN")) %>%
+    return()
+}
+
+
+
+
+
+
+str_remove_all_common_titles_dt2 <- function(datatable,
+                                            column,
+                                            prefixes = c(" ", ",", ",", " "),
+                                            suffixes = c(" ", ",", " ", ","),
+                                            startswith = T,
+                                            endswith = T,
+                                            specific = NULL) {
+  # datatable <- copy(contain_commas_char1)
+  # column <- "column2"
+  # prefixes <- c(" ", " ", ",")
+  # suffixes <- c(" ", ",", " ")
+  # endswith = T 
+  # startswith = T
+  
+  if (length(prefixes) != length(suffixes)) {
+    errorCondition(message = "Length of prefixes must match length of suffixes!")
+  }
+  
+  # set up
+  dt <- copy(datatable) %>%
+    rename_columns(current_names = c(column),
+                   new_names = c("col")) %>%
+    generate_internal_order_column(.)
+  
+  
+  # extract common titles
+  if (is.null(specific)) {
+    # load common titles
+    common_titles <- get_common_tites(type = "educ_period") %>%
+      append(., get_common_tites(type = "educ_unambiguous")) %>%
+      append(., get_common_tites(type = "military")) %>%
+      append(., get_common_tites(type = "oth")) %>%
+      append(., get_common_tites(type = "poli"))
+    
+  } else{
+    common_titles <- specific
+  }
+  
+  # order lengths to get the most complex first 
+  lengths_order <- common_titles %>% nchar() %>% order(.) %>% rev()
+  common_titles <- common_titles[lengths_order]
   
   # unconstrained
   for (i in 1:length(prefixes)) {
