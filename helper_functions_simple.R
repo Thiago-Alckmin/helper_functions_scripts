@@ -1720,6 +1720,7 @@ get_common_tites <- function(type = "educ_period") {
     "LLM",
     "LLB",
     "PROF")
+  
   educ_noperiod_very_ambiguous <- c(
     "BA",
     "MA"
@@ -1742,7 +1743,23 @@ get_common_tites <- function(type = "educ_period") {
       "LLM\\." ,
       "LLB\\.",
       "PROF\\.",
-      "ENG\\."
+      "ENG\\.",
+      "B.A.",
+      "MR." ,
+      "MSR." ,
+      "MS.",
+      "BSC.",
+      "MSC.",
+      "MBA.",
+      "MA." ,
+      "MD." ,
+      "PH.D.",
+      "PHD." ,
+      "DR." ,
+      "LLM." ,
+      "LLB.",
+      "PROF.",
+      "ENG."
     ) 
   # military
   military_unambiguous <- c(
@@ -1827,7 +1844,26 @@ get_common_tites <- function(type = "educ_period") {
     'MAR\\.',
     'RES\\.',
     'LT\\.',
-    'FD\\.'
+    'FD\\.',
+    'CAPT.',
+    'CMDR.',
+    'BRIG.',
+    'RADM.',
+    'CORPS',
+    'SGT.',
+    'MAJ.',
+    'GEN.',
+    'COL.',
+    'CPL.',
+    'SPC.',
+    'ADM.',
+    'PFC.',
+    'PVT.',
+    'DIV.',
+    'MAR.',
+    'RES.',
+    'LT.',
+    'FD.'
   )
   # political & religious
   poli <- c(
@@ -2054,10 +2090,6 @@ str_remove_all_common_titles_dt <- function(datatable,
                    new_names = c(column, "INTERNAL_ORDER_COLUMN")) %>%
     return()
 }
-
-
-
-
 
 
 str_remove_all_common_titles_dt2 <- function(datatable,
