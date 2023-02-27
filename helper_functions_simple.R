@@ -1672,13 +1672,13 @@ str_detect_most_common_string_by_group <- function(
   
   
   
-  
-  datatable = ipu_compare2
-  by_columns = c("chamber_id") 
-  str_column = "country_iso2" 
-  na.rm=T
-  first="random"
-  suffix=""
+  # 
+  # datatable = ipu_compare2
+  # by_columns = c("chamber_id") 
+  # str_column = "country_iso2" 
+  # na.rm=T
+  # first="random"
+  # suffix=""
   
   # set-up -----
   by_cols <- by_columns
