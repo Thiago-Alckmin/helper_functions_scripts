@@ -1669,9 +1669,6 @@ str_detect_most_common_string_by_group <- function(
     first="random", 
     suffix="per_group"){
   
-  
-  
-  
   # 
   # datatable = ipu_compare2
   # by_columns = c("chamber_id") 
@@ -1729,13 +1726,6 @@ str_detect_most_common_string_by_group <- function(
       .[max_N_by_cols==N] 
     
   }
-  
-  
-  
-  
-  
-  
-  
   
   
   # in case of ties, reshuffle for random or order for alphabetical

@@ -1207,6 +1207,19 @@ create_AB_combinations_dt <- function(max){
   
 }
 
+create_AB_combinations_dt_with_vectors <- function(A_vec, B_vec){
+  
+  strings <- c(1:(max))
+  
+  CJ(A= A_vec, B= B_vec, sorted = T, unique = T) %>% 
+    .[A!=B] %>% 
+    .[, column := paste0("s","_", A,"_", B)] %>% 
+    .[, sum := A + B] %>% 
+    .[order(sum, A)] %>% 
+    return()
+  
+}
+
 
 ################################################################################
 # Section 4: quick analysis  --------------
