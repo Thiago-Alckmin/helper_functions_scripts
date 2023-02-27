@@ -1569,8 +1569,8 @@ str_trim_ws_iterate <- function(string, whitespace=" "){
   
 }
 
-# detect the most common string by group ------
-str_detect_most_common_string_by_group <- function(
+# 3.10 detect the most common string by group ------
+str_detect_most_common_string_by_group_old <- function(
     datatable, 
     by_columns, 
     str_column, 
@@ -1659,6 +1659,139 @@ str_detect_most_common_string_by_group <- function(
   
   
 }
+
+# detect the most common string by group ------
+str_detect_most_common_string_by_group <- function(
+    datatable, 
+    by_columns, 
+    str_column, 
+    na.rm=T,
+    first="random", 
+    suffix="per_group"){
+  
+  
+  
+  
+  
+  datatable = ipu_compare2
+  by_columns = c("chamber_id") 
+  str_column = "country_iso2" 
+  na.rm=T
+  first="random"
+  suffix=""
+  
+  # set-up -----
+  by_cols <- by_columns
+  by_cols_alt <- 1:length(by_cols) %>% paste0("by_col", .)
+  by_cols_alt_str_col <- by_cols_alt %>% append(c("str_col"))
+  
+  # catch errors 
+  if(str_column %chin% by_cols){
+    errorCondition("str_column is contained in by_columns. ")
+  }
+  
+  # rename columns 
+  datatable %<>% 
+    rename_columns(
+      current_names = by_cols, 
+      new_names = by_cols_alt 
+    ) %>%
+    rename_columns(
+      current_names = str_column, 
+      new_names = "str_col" 
+    ) 
+  
+  if(na.rm==T){
+    
+    # select most common
+    tmp <- datatable %>% copy() %>% 
+      .[!is.na(str_col)] %>% 
+      # compute N observatios per group & str_col
+      .[, .N, by_cols_alt_str_col] %>% 
+      # by the by_cols, get the most frequent occurance
+      .[, max_N_by_cols:= ifelse(
+        na.rm==T, yes = max(N, na.rm=T), max(N, na.rm=T)), by_cols_alt]   %>%
+      # restrict to most frequent per group 
+      .[max_N_by_cols==N] 
+    
+  }else{
+    
+    
+    
+    # select most common
+    tmp <- datatable %>% copy() %>% 
+      # compute N observatios per group & str_col
+      .[, .N, by_cols_alt_str_col] %>% 
+      # by the by_cols, get the most frequent occurance
+      .[, max_N_by_cols:= ifelse(
+        na.rm==T, yes = max(N, na.rm=T), max(N, na.rm=T)), by_cols_alt]   %>%
+      # restrict to most frequent per group 
+      .[max_N_by_cols==N] 
+    
+  }
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  # in case of ties, reshuffle for random or order for alphabetical
+  if(first=="random"){
+    tmp %<>%
+      # random shuffle
+      .[sample(.N, .N, replace = F)]
+  }
+  if(first=="alphabetical"){
+    tmp %<>%
+      # random shuffle
+      .[order(str_col)]
+  }
+  if(first=="rev_alphabetical"){
+    tmp %<>%
+      # random shuffle
+      .[order(-str_col)]
+  }
+  
+  
+  # now remove any duplicates
+  tmp %>% 
+    # drop duplicated by_column groups
+    .[, agg_level := .GRP, by_cols_alt ] %>% 
+    .[!duplicated(agg_level)] %>% 
+    .[, agg_level := NULL] %>% 
+    .[, max_N_by_cols := NULL] %>% 
+    # rename to show the number of occurrences (in case ) 
+    rename_columns(
+      current_names = c("str_col"), 
+      new_names = c(paste0(str_column, "_most_common"))
+    ) %>% 
+    rename_columns(
+      current_names = c("N"), 
+      new_names = c(
+        paste0(str_column, "_N_", suffix))
+    ) %>% 
+    merge(
+      y =., x = datatable,
+      by = by_cols_alt, all=T) %>% 
+    # rename to show the number of occurrences (in case ) 
+    rename_columns(
+      current_names = by_cols_alt, 
+      new_names = by_cols)  %>% 
+    rename_columns(
+      current_names = c("str_col"), 
+      new_names = c(paste0(str_column))
+    ) %>% 
+    return()
+  
+  
+}
+
+
+
+
 
 # Section 3.10: remove all trailing commas and spaces
 str_remove_all_trailing_commas_and_spaces <- function(string){
