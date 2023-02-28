@@ -1867,6 +1867,7 @@ get_common_tites <- function(type = "educ_period") {
       "LLB\\.",
       "PROF\\.",
       "ENG\\.",
+      "POL.",
       "B.A.",
       "MR." ,
       "MSR." ,
@@ -1882,7 +1883,8 @@ get_common_tites <- function(type = "educ_period") {
       "LLM." ,
       "LLB.",
       "PROF.",
-      "ENG."
+      "ENG.",
+      "POL."
     ) 
   # military
   military_unambiguous <- c(
