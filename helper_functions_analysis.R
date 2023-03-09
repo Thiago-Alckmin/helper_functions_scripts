@@ -448,6 +448,55 @@ indicate_years_present <- function(
 }
 
 
+expand_given_start_end_year <-  function(
+    datatable, 
+    year_min = min(years)-10,
+    year_max = max(years)+10,
+    variable_start_str = "year_start_str",
+    variable_end_str = "year_end_str"){
+  
+  
+  # datatable <- AR_supp  
+  # year_min = min(years)-10
+  # year_max = max(years) + 10
+  # variable_start_str = "year_start_str"
+  # variable_end_str = "year_end_str"
+  
+  
+  # save original info
+  datatable_original <- datatable %>% copy() 
+  cols <- datatable_original %>% names() %>% .[!(.%chin%c("year", "in_office", "rowID"))]
+  cols_new <- append(cols, c("year", "in_office"))
+  
+  # create rowID 
+  datatable[, rowID:=.I]
+  
+  # create a matrix with the years that the original row occuied
+  years_present_rowID <- datatable %>% copy() %>%
+    indicate_years_present(
+      datatable = .,
+      year_min = year_min,
+      year_max = year_max,
+      variable_start_str = variable_start_str,
+      variable_end_str = variable_end_str
+    ) %>%
+    data.table()  %>%
+    .[, rowID := 1:.N]  %>%
+    melt(data = ., id.vars = "rowID") %>% 
+    .[order(rowID)] %>%    # only keep observations where the rowID is present
+    .[value == 1] %>% 
+    dplyr::rename(., year = variable, in_office = value)
+  
+  years_present_rowID %>% 
+    merge(x=datatable, y = ., by ="rowID", all=T) %>% 
+    .[, ..cols_new] %>% 
+    .[year_start>=year_min] %>% 
+    return()
+  
+  
+  
+}
+
 
 # indicate years present: spit out matrix with the years available -----
 create_dummy_matrix_to_indicate_years_present <- function(
