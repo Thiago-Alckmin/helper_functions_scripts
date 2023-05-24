@@ -1581,7 +1581,7 @@ get_most_recent_value_by_group <- function(datatable, time_column, column, by_co
   
 }
 ################################################################################
-# Section 5: Regression analysis 
+# Section 5: Regression analysis ###############################################
 ################################################################################
 
 
@@ -1871,6 +1871,60 @@ save_lightweight_summary <- function(fixest_model_summary, filename=NULL, direct
 }
 
 
+
+
+
+# ##############################################################################
+# Section 6: applying cut-offs 
+# ##############################################################################
+
+
+
+
+apply_minimum_cutoff <- function(
+    datatable, 
+    cutoff_datatable, 
+    datatable_cutoff_variable, 
+    cutoff_minimum_variable, 
+    cutoff_minmax_name_root="cutoff") {
+  
+  #   cutoff_datatable <- population_thresholds
+  # datatable <- fpm_pop_inputs
+  # datatable_cutoff_variable <- "fpm_pop_est_tmin1"
+  # cutoff_minimum_variable <- "min_popest"
+  
+  
+  # preamble
+  dt1 <-  datatable %>% copy() %>% 
+    rename_columns(
+      current_names = c(datatable_cutoff_variable),
+      new_names = c("datatable_cutoff_variable"))
+  
+  cutoff_dt <- cutoff_datatable %>% copy() %>% 
+    rename_columns(
+      current_names = c(cutoff_minimum_variable),
+      new_names = c("cutoff_minimum_variable")) %>% 
+    .[order(cutoff_minimum_variable)]
+  
+  # add the population cut-offs to the data
+  for(i in 1:nrow(cutoff_dt)){
+    
+    # message_with_lines(i)
+    
+    POP_CUTOFF <- cutoff_dt[i, cutoff_minimum_variable]
+    POP_CUTOFF_max <- cutoff_dt[i+1, cutoff_minimum_variable] - 1
+    
+    dt1[datatable_cutoff_variable>=POP_CUTOFF, cutoff_min := POP_CUTOFF]
+    dt1[datatable_cutoff_variable>=POP_CUTOFF, cutoff_max := POP_CUTOFF_max]
+    
+  }
+  
+  dt1 %>% 
+    rename_columns(
+      current_names = c("datatable_cutoff_variable", "cutoff_min", "cutoff_max"),
+      new_names = c(datatable_cutoff_variable, paste0(cutoff_minmax_name_root, "_min"), paste0(cutoff_minmax_name_root, "_max"))) %>% 
+    return()
+}
 
 
 # ##############################################################################
