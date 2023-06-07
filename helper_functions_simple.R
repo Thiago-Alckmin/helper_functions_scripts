@@ -244,21 +244,25 @@ cummax <- function(x) {
 }
 
 # second cumulative max for vector ------
-second_cummax <- function(x){
+
+second_cummax <-  function(x){
   
   second_cummax_vec <- numeric(length(x))
-  for (i in 2:length(x)) {
-    
-    vec_so_far <- x[1:i]
-    max_so_far <- max(vec_so_far)
-    index_for_max <- which(vec_so_far==max_so_far)[1]
-    vec_so_far[index_for_max] <- 0
-    
-    second_max <- max(vec_so_far)
-    
-    second_cummax_vec[i] <- second_max
-    
-  }
+  
+  if(length(x)>1){
+    for (i in 2:length(x)) {
+      
+      vec_so_far <- x[1:i]
+      max_so_far <- max(vec_so_far)
+      index_for_max <- which(vec_so_far==max_so_far)[1]
+      vec_so_far[index_for_max] <- 0
+      
+      second_max <- max(vec_so_far)
+      
+      second_cummax_vec[i] <- second_max
+      
+    }
+  } 
   
   return(second_cummax_vec)
   
