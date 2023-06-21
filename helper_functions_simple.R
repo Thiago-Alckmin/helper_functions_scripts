@@ -1117,7 +1117,8 @@ standardize_name_column_dt_legacy <- function(
     .[, n_commas := stringr::str_count(column2, ",")]  %>% 
     .[n_commas>0, column2 := str_remove_all_trailing_commas_and_spaces(column2) ] %>% 
     .[, n_commas := stringr::str_count(column2, ",")] %>% 
-    .[, column2 := stringr::str_remove_all(column2, "\\n")]
+    .[, column2 := stringr::str_remove_all(column2, "\\n")] %>% 
+    .[, column2 := stringi::stri_trim_both(column2)] 
   
   paste0("1) String column has been transliterated into ASCII, upper case characters.") %>%  
     message_with_lines()
