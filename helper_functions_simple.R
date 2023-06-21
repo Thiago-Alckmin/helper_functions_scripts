@@ -2079,6 +2079,85 @@ get_common_tites <- function(type = "educ_period") {
   
 }
 
+
+# given a data.table with a character col, indicate what needs to be removed ----
+drop_strings <- function(datatable,
+                         strings=c(" DE ", " DA ", " DO ", " DAS ", " DOS "),
+                         name_column="name", 
+                         drop_single_letters=T){
+  
+  
+  # datatable <- main %>% copy() 
+  # name_column <- "name"
+  
+  # rename for convenience
+  datatable <- datatable %>% copy() %>% 
+    rename_columns(datatable=.,
+                   current_names=c(name_column),
+                   new_names=c("name_column"))
+  
+  
+  # create a crosswalk between the original name and the clean name
+  name_dt <-  datatable %>% copy() %>%
+    .[, .(name_column)] %>%
+    # everything upper case
+    .[, name_clean := str_to_upper(name_column)]
+  
+  # strings to be removed
+  if(drop_single_letters){
+    
+    # drop individual letters
+    remove_these <- LETTERS %>% paste0(" ", ., " ") %>%    
+      append(strings)
+    print("Dropping strings which match the 'strings' list or are single letters with spaces.")
+  }else{
+    # drop specifed strings only
+    remove_these <- strings
+    print("Dropping strings which match the 'strings' list.")
+  }
+  
+  
+  # for each string, remove it from the
+  for(string in remove_these) {
+    # delete later
+    # string <- strings[1]
+    
+    x_second_sleep(x = 0.0001, additional = string)
+    
+    name_dt$name_clean <- name_dt %>%
+      .[, .(name_clean)] %>%
+      # remove all of the strings and unmatchable single letter names
+      apply(.,
+            2,
+            str_replace_all,
+            pattern = string,
+            replacement = " ") %>%
+      as.data.table()
+    
+  }
+  
+  out <- cbind(datatable, name_dt[, .(name_clean)])
+  
+  # rename for consistency
+  out <- out %>% copy() %>% 
+    rename_columns(datatable=.,
+                   current_names=c("name_column"),
+                   new_names=c(name_column))
+  
+  
+  return(out)
+  
+}
+
+# split column names -----
+split_names_by_space <- function(datatable, name_column = "name_clean"){
+  
+  
+  out <- split_names_by_pattern(datatable=datatable, name_column = name_column, pattern = " ")
+  
+  
+}
+
 # Section 3.12.1: drop common titles from strings: helper functions -------
 str_remove_all_common_titles <- function(vector, prefix="", suffix="", specific=NULL){
   
