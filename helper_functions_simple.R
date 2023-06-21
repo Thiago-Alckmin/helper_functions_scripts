@@ -1070,8 +1070,12 @@ str_create_name_column <- function(dataset="CIA-CHIEFS"){
 }
 
 
-# Section 3.1: clean names FASTER -----
-standardize_name_column_dt <- function(
+
+
+
+
+# Section 3.1: clean names FASTER legacy -----
+standardize_name_column_dt_legacy <- function(
     datatable, 
     column, 
     drop_common_titles_when_one_comma,
@@ -2282,8 +2286,8 @@ str_remove_all_common_titles_dt2 <- function(datatable,
       ) %>%
         message_with_lines()
       
-      dt <- dt[str_detect(string = col, pattern = title_to_search),
-               col := str_remove_all(string = col, pattern = title_to_delete)]
+      dt <- dt[stri_detect_fixed(string = col, pattern = title_to_search),
+               col := stri_replace_all_fixed(string = col, pattern = title_to_delete, replacement="")]
       
     }
   }
@@ -2311,7 +2315,7 @@ str_remove_all_common_titles_dt2 <- function(datatable,
         
         dt <-
           dt[startsWith(x = col, prefix =  title_to_search_startswith),
-             col := str_remove_all(string = col, pattern = title_to_delete)]
+             col := stri_replace_all_fixed(string = col, pattern = title_to_delete, replacement = "")]
       }
     }
   }
@@ -2338,7 +2342,7 @@ str_remove_all_common_titles_dt2 <- function(datatable,
         
         
         dt <- dt[endsWith(x = col, suffix = title_to_search_endswith),
-                 col := str_remove_all(string = col, pattern = title_to_delete)]
+                 col := stri_replace_all_fixed(string = col, pattern = title_to_delete, replacement = "")]
       }
     }
   }
@@ -2357,8 +2361,8 @@ str_remove_all_common_titles_dt2 <- function(datatable,
   
   dt %>%
     # remove excess commas (fruit of deletions)
-    .[str_detect(col, ", ,"), col := str_replace_all(col, pattern = ", ,", replacement = ",")] %>%
-    .[str_detect(col, ",,"), col := str_replace_all(col, pattern = ",,", replacement = ",")] %>%
+    .[str_detect(col, ", ,"), col := stri_replace_all_fixed(col, pattern = ", ,", replacement = ",")] %>%
+    .[str_detect(col, ",,"), col := stri_replace_all_fixed(col, pattern = ",,", replacement = ",")] %>%
     # reorder
     .[order(INTERNAL_ORDER_COLUMN)] %>%
     .[, INTERNAL_ORDER_COLUMN := NULL] %>%
