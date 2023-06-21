@@ -1069,10 +1069,42 @@ str_create_name_column <- function(dataset="CIA-CHIEFS"){
   
 }
 
+# helper function to remove strings sequentially ------
+str_remove_strings_sequentially <- function(datatable, column, rm){
+  
+  tmp <- datatable %>% copy() %>% 
+    rename_columns(c(column), c("column")) %>% 
+    .[, column_clean := column]
+  
+  for(STR in rm){
+    
+    paste0("Removing: ", STR) %>% message_with_lines()
+    
+    tmp[, column_clean := stri_replace_all_fixed(column_clean, STR, "")]
+    
+  }    
+  
+  tmp %>% 
+    rename_columns(c("column", "column_clean"), c(column, paste0(column, "_clean"))) %>% 
+    return()
+  
+}
 
+standardize_text <- function(datatable, column, rm){
+  
+  # datatable <- scrapped_parliamentarians
 
-
-
+  datatable %>% copy() %>%  
+    rename_columns(current_names = c(column), new_names = c("column")) %>% 
+  .[, column := stri_trim_both(column)] %>% 
+    .[, column := toupper(column)] %>% 
+    str_remove_strings_sequentially(., column = "column", rm=rm) %>% 
+    .[, column_clean := stri_trans_general(column_clean, 'Any-ascii')] %>% 
+    rename_columns(current_names = c("column", "column_clean"), 
+                   new_names = c(column, paste0(column, "_clean"))) %>% 
+    return()
+  
+}
 
 # Section 3.1: clean names FASTER legacy -----
 standardize_name_column_dt_legacy <- function(
@@ -1117,8 +1149,7 @@ standardize_name_column_dt_legacy <- function(
     .[, n_commas := stringr::str_count(column2, ",")]  %>% 
     .[n_commas>0, column2 := str_remove_all_trailing_commas_and_spaces(column2) ] %>% 
     .[, n_commas := stringr::str_count(column2, ",")] %>% 
-    .[, column2 := stringr::str_remove_all(column2, "\\n")] %>% 
-    .[, column2 := stringi::stri_trim_both(column2)] 
+    .[, column2 := stringr::str_remove_all(column2, "\\n")] 
   
   paste0("1) String column has been transliterated into ASCII, upper case characters.") %>%  
     message_with_lines()
