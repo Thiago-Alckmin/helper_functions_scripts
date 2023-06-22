@@ -2158,6 +2158,42 @@ split_names_by_space <- function(datatable, name_column = "name_clean"){
   
 }
 
+# split name column by a pattern -----
+split_names_by_pattern <- function(datatable, name_column = "name_clean", pattern=" "){
+  
+  # rename columns for convenience
+  datatable <- rename_columns(datatable=datatable,
+                              current_names=c(name_column),
+                              new_names=c("name_column"))
+  
+  # split names by space
+  name_dt_pre_split <- datatable %>% copy() %>%
+    .[, name_count := str_count(name_column, pattern)+1]
+  
+  # get max number of surnames in data
+  max_name_count <- name_dt_pre_split %>% .[, max(name_count)]
+  
+  # split by spaces
+  name_dt_split <- name_dt_pre_split %>% copy() %>%
+    # split names into six names at most
+    .[, paste0("name_column", c(1:max_name_count)) := tstrsplit(x = name_column, pattern, fixed =
+                                                                  TRUE)] 
+  
+  # get current column names to be renamed
+  name_columnX <- paste0("name_column", c(1:max_name_count)) %>% append("name_column")
+  # and what they should be
+  name_columnX_out <- paste0(name_column, c(1:max_name_count)) %>% append(name_column)
+  
+  # rename columns for consistency
+  out <- rename_columns(datatable=name_dt_split,
+                        current_names=name_columnX,
+                        new_names=name_columnX_out)
+  
+  return(out)
+  
+}
+
+
 # Section 3.12.1: drop common titles from strings: helper functions -------
 str_remove_all_common_titles <- function(vector, prefix="", suffix="", specific=NULL){
   

@@ -1494,12 +1494,12 @@ match_split_columns_with_crosswalk <- function(datatable,
   }
   
   # detect the new columns 
-  new_columns <- get_new_column_names(old_datatable = datatable, 
-                                      new_datatable = out)
-  
-  # set missings equal to zero 
-  out <- out %>% setnafill(x = ., fill = 0, cols = new_columns)
-  
+  # new_columns <- get_new_column_names(old_datatable = datatable, 
+  #                                     new_datatable = out)
+  # 
+  # # set missings equal to zero 
+  # out <- out %>% setnafill(x = ., fill = 0, cols = new_columns)
+  # 
   return(out)
   
 }
