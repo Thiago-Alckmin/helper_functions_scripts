@@ -110,6 +110,8 @@ create_fy_indicator_alo <- function(datatable,
     # get all of the unique characteristics
     unique_characteristics <- owners_fyi_dummies %>% .[, ..vars_characteristic] %>% unique() %>% unlist
     
+    unique_characteristics %<>%  ifelse(is.na(.), 0, .)
+    
     owners_fyi_dummies <- dummy_cols_for_big_data(
       datatable = owners_fyi_dummies,
       index = index_fyi, 
