@@ -16,8 +16,7 @@ find_string <- function(
   # parameters
   directory = "C:/Users/alckm/Dropbox/Uganda/Programs/Archive",
   string = "PDE_Panel\\.dta",
-  file_type = "\\.do")
-  {
+  file_type = "\\.do"){
   # get files in directory which match extension
   files <- directory %>%
     list.files(path = ., full.names = T) %>%
@@ -52,8 +51,8 @@ find_string <- function(
 
 
 # example
-check_here <- find_string(  directory = "C:/Users/alckm/Dropbox/Uganda/Programs/",
-              string = "proc_rec_all\\.dta",
-              file_type = "\\.do" ) 
-
-View(check_here)
+# check_here <- find_string(  directory = "C:/Users/alckm/Dropbox/Uganda/Programs/",
+#               string = "proc_rec_all\\.dta",
+#               file_type = "\\.do" ) 
+# 
+# View(check_here)
