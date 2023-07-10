@@ -5,7 +5,10 @@
 # status: DONE
 # ##################################################
 
-pacman::p_load(readtext, tidyverse, glue, data.table)
+require(readtext)
+require(glue)
+require(data.table)
+require(magrittr)
 
 # function to find string in files for given file type and directory
 find_string <- function(
