@@ -1873,6 +1873,71 @@ save_lightweight_summary <- function(fixest_model_summary, filename=NULL, direct
 }
 
 
+## FN 5 : clean up fixest model output -------------------------
+
+fixest_model_output <- function(model, variable_cw, modelname = "Baseline", additional_controls){
+  
+  # model <- mod1a
+  # variable_cw <- c("same_nationality_surfer_judge" = "Same Nationality: Judge & Surfer")
+  # modelname <- "Baseline"
+  # additional_controls <- c("Surfer FE" = "No",  "Heat FE" = "No")
+  
+  variable_name_cw <-  variable_cw %>% 
+    as.data.table(keep.rownames=T) %>% 
+    rename_columns(c("."), c("VariableLable"))
+  
+  modout <- model$coeftable %>% 
+    as.data.table(keep.rownames = T) %>%
+    rename_columns(
+      c(  "Estimate", "Std. Error", "t value", "Pr(>|t|)"), 
+      c("Coeff", "SE", "Tstatistic", "pvalue")) %>% 
+    .[, stars := ""] %>% 
+    .[pvalue<=0.1, stars := "*"] %>% 
+    .[pvalue<=0.05, stars := "**"] %>% 
+    .[pvalue<=0.01, stars := "***"] %>% 
+    .[, coeff_stars := paste0(round(Coeff, 4), "", stars)] %>% 
+    .[, SE := paste0("(",round(SE, 3), ")")] %>% 
+    .[, .(rn,  coeff_stars, SE)] %>% 
+    melt.data.table(., id.vars = c("rn")) %>% 
+    merge(., variable_name_cw, by = "rn", all.x=T, all.y=F)  %>% 
+    .[order(rn, variable)] %>% 
+    .[, index := 1:.N, rn] %>% 
+    .[, variable_label := VariableLable] %>% 
+    .[index == 2, variable_label := ""] 
+  
+  modout %<>% 
+    .[!is.na(VariableLable)] %>% 
+    .[, .(variable_label, value, rn, index)] %>% 
+    rename_columns(c("variable_label", "value"), c("Variable", modelname)) %>% 
+    .[, relevance := "1"]
+  
+  lower_conventional <- c("R2" = format(round(model$sq.cor, 4), scientific = F), 
+                          "Observations" = format(model$nobs, big.mark=",") ) %>% 
+    as.data.table(keep.rownames=T) %>% 
+    rename_columns(c("rn", "."), c("Variable", modelname)) %>% 
+    .[, relevance := "2"]
+  
+  additional_controls %<>% 
+    as.data.table(keep.rownames=T) %>% 
+    rename_columns(c("rn", "."), c("Variable", modelname)) %>% 
+    .[, relevance := "3"]
+  
+  rbind(modout, lower_conventional, fill=T) %>% 
+    rbind(., additional_controls, fill=T)  %>% 
+    .[is.na(rn), rn := Variable] %>% 
+    return()
+  
+}
+
+
+
+latex_tab_frag <-
+  function(input = "output/tables/latex/auto/main_table1.txt", output = "output/tables/latex/frag/main_table1.tex") {
+    readr::read_lines(input) %>%
+      .[5:(length(.) - 1)] %>%
+      readr::write_lines(output)
+    
+  }
 
 
 
