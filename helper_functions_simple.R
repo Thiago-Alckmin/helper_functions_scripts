@@ -544,6 +544,23 @@ clean_numerical_suffix <- function(variables){ #clean_numerical_suffix
 }
 
 
+# drop duplicates across whole dt ----------
+
+drop_duplicates <- function(dt, by=NULL){
+  
+  if(is.null(by)){
+    by <- dt %>% names()
+  }
+  
+  dt %>% 
+    .[, .GRP, by] %>% 
+    .[!duplicated(GRP)] %>% 
+    .[, GRP := NULL] %>% 
+    return()
+  
+}
+
+
 # order these first (USED TO BE order_these_first) -----
 reorder_columns <- function(vector, first){
   
