@@ -489,6 +489,23 @@ get_variable_name_with_suffix <- function(datatable, suffix){
   return(column_name)
 }
 
+# cleans text ------------
+
+clean_text_revolvingdoor <- function(x){
+
+  x %>%
+    # clean up firm names by making upper case
+    enc2utf8() %>%
+    toupper() %>%
+    # removing punctuation
+    gsub(pattern = "[[:punct:]]", replacement = " ", x = .) %>%
+    # removing double spaces
+    gsub(pattern = "\\s+", replacement = " ", x = .) %>%
+    # removing leading/trailing spacess
+    stri_trim_both(.) %>%
+    return()
+
+}
 
 # clean numerical suffix to avoid matching confusion ----
 clean_numerical_suffix <- function(variables){ #clean_numerical_suffix
