@@ -1,3 +1,4 @@
 # helper_functions_scripts
  
-I created this mostly so that I can have an easily accessible repository of helper functions for all of the projects I work on. 
+This is a compilation of helper functions I use regularly on researc projects in R.
+It's public mostly because there are projects which depend on these functions to run.
